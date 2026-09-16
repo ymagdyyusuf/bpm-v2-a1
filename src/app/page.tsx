@@ -2,6 +2,7 @@ import { listPobs, type PobFilters } from "@/lib/db/pobs";
 import { listAcademicYears, listTerms, listStages, listTypes, listLanguages, listSubjects } from "@/lib/db/reference";
 import { listPublishers } from "@/lib/db/publishers";
 import { createPobAction } from "@/lib/actions/pobs";
+import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
 import { PobsFilterBar } from "@/components/PobsFilterBar";
 
@@ -27,7 +28,7 @@ export default async function PobsPage({
     if (params[key]) filters[key] = params[key];
   }
 
-  const [pobs, academicYears, terms, publishers, stages, types, languages, subjects] = await Promise.all([
+  const [pobs, academicYearsRaw, terms, publishers, stages, types, languages, subjects] = await Promise.all([
     listPobs(filters),
     listAcademicYears(),
     listTerms(),
@@ -37,6 +38,9 @@ export default async function PobsPage({
     listLanguages(),
     listSubjects(),
   ]);
+
+  // D-31: السنة رقم — تُعرض عربية، والقيمة (uuid) خلف الكواليس تبقى كما هي للفلترة والترتيب
+  const academicYears = academicYearsRaw.map((y) => ({ ...y, label: toArabicDigits(y.label) }));
 
   const options = {
     academic_year_id: academicYears,
@@ -220,10 +224,10 @@ export default async function PobsPage({
                 {p.term?.label}
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
-                {p.academic_year?.label}
+                {toArabicDigits(p.academic_year?.label)}
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "left", fontWeight: 700 }}>
-                {p.price != null ? p.price.toFixed(2) : "—"}
+                {p.price != null ? toArabicDigits(p.price.toFixed(2)) : "—"}
               </div>
             </div>
           ))
