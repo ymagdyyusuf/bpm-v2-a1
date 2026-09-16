@@ -25,3 +25,17 @@ export const listLanguages = () => listOptions("languages");
 export const listSubjects = () => listOptions("subjects");
 export const listComponentCategories = () => listOptions("component_categories");
 export const listComponentKinds = () => listOptions("component_kinds");
+
+export type ActionOption = Option & { requires_number: boolean };
+
+export async function listActions(): Promise<ActionOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("actions")
+    .select("id, label, requires_number")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}

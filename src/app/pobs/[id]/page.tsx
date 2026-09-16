@@ -2,10 +2,17 @@ import { notFound } from "next/navigation";
 import { getPob } from "@/lib/db/pobs";
 import { listComponentsForPob } from "@/lib/db/components";
 import { listComponentCategories, listComponentKinds } from "@/lib/db/reference";
+import { getComponentStatuses } from "@/lib/db/events";
 import { createComponentAction } from "@/lib/actions/components";
 import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
 import { selectStyle, fieldLabelStyle, errorBannerStyle, noticeBannerStyle, inactiveBadgeStyle } from "@/components/formStyles";
+
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  "لم يبدأ": { bg: "oklch(0.93 0.006 260)", text: "oklch(0.40 0.012 260)" },
+  "جارٍ": { bg: "oklch(0.945 0.05 78)", text: "oklch(0.38 0.095 68)" },
+  "منتهية": { bg: "oklch(0.935 0.045 150)", text: "oklch(0.35 0.09 150)" },
+};
 
 function IdentityField({ label, value }: { label: string; value?: string }) {
   return (
@@ -37,11 +44,12 @@ export default async function PobDetailPage({
   const { id } = await params;
   const { error, notice } = await searchParams;
 
-  const [pob, components, categories, kinds] = await Promise.all([
+  const [pob, components, categories, kinds, statuses] = await Promise.all([
     getPob(id),
     listComponentsForPob(id),
     listComponentCategories(),
     listComponentKinds(),
+    getComponentStatuses(id),
   ]);
 
   if (!pob) notFound();
@@ -173,8 +181,8 @@ export default async function PobDetailPage({
           مكوّنات الحزمة
         </h2>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border-soft)", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "100px 110px minmax(200px,2fr) 130px 90px 110px 110px", padding: "0 20px" }}>
-            {["الفئة", "النوع", "الاسم", "مقاس الصفحة", "الصفحات", "الألوان", ""].map((h) => (
+          <div style={{ display: "grid", gridTemplateColumns: "90px 100px minmax(160px,2fr) 110px 70px 90px 110px 150px", padding: "0 20px" }}>
+            {["الفئة", "النوع", "الاسم", "مقاس الصفحة", "الصفحات", "الألوان", "الموقف", ""].map((h) => (
               <div
                 key={h}
                 className="heading-font"
@@ -194,12 +202,14 @@ export default async function PobDetailPage({
                 c.page_height_cm != null && c.page_width_cm != null
                   ? `${toArabicDigits(c.page_height_cm)} × ${toArabicDigits(c.page_width_cm)}`
                   : "—";
+              const status = statuses[c.id] ?? { progress: "لم يبدأ" as const, isBlocked: false, blockReason: null };
+              const statusStyle = STATUS_STYLE[status.progress];
               return (
                 <div
                   key={c.id}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "100px 110px minmax(200px,2fr) 130px 90px 110px 110px",
+                    gridTemplateColumns: "90px 100px minmax(160px,2fr) 110px 70px 90px 110px 150px",
                     padding: "0 20px",
                     borderTop: "1px solid var(--border-soft)",
                   }}
@@ -222,8 +232,32 @@ export default async function PobDetailPage({
                   <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "var(--text-muted)" }}>
                     {c.colors ?? "—"}
                   </div>
-                  <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <a href={`/pobs/${pob.id}/components/${c.id}/edit`} style={{ fontSize: 13, fontWeight: 600 }}>
+                  <div style={{ padding: "12px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        background: statusStyle.bg,
+                        color: statusStyle.text,
+                      }}
+                    >
+                      {status.progress}
+                    </span>
+                    {status.isBlocked ? (
+                      <span style={{ fontSize: 11.5, fontWeight: 600, color: "oklch(0.45 0.12 25)", textAlign: "center", lineHeight: 1.4 }}>
+                        معطَّل: {status.blockReason}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div style={{ padding: "12px 6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <a href={`/pobs/${pob.id}/components/${c.id}/events/new`} style={{ fontSize: 12.5, fontWeight: 600 }}>
+                      تسجيل حدث
+                    </a>
+                    <a href={`/pobs/${pob.id}/components/${c.id}/edit`} style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-muted)" }}>
                       تعديل / حذف
                     </a>
                   </div>
