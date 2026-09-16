@@ -1,123 +1,229 @@
+import { listPobs, type PobFilters } from "@/lib/db/pobs";
+import { listAcademicYears, listTerms, listStages, listTypes, listLanguages, listSubjects } from "@/lib/db/reference";
 import { listPublishers } from "@/lib/db/publishers";
-import { addPublisherAction } from "@/lib/actions/publishers";
-import { signOutAction } from "@/lib/actions/auth";
+import { createPobAction } from "@/lib/actions/pobs";
+import { AppHeader } from "@/components/AppHeader";
+import { PobsFilterBar } from "@/components/PobsFilterBar";
 
-export default async function PublishersPage() {
-  const publishers = await listPublishers();
+const FILTER_KEYS = [
+  "academic_year_id",
+  "term_id",
+  "publisher_id",
+  "stage_id",
+  "type_id",
+  "language_id",
+  "subject_id",
+] as const;
+
+export default async function PobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
+
+  const filters: PobFilters = {};
+  for (const key of FILTER_KEYS) {
+    if (params[key]) filters[key] = params[key];
+  }
+
+  const [pobs, academicYears, terms, publishers, stages, types, languages, subjects] = await Promise.all([
+    listPobs(filters),
+    listAcademicYears(),
+    listTerms(),
+    listPublishers(),
+    listStages(),
+    listTypes(),
+    listLanguages(),
+    listSubjects(),
+  ]);
+
+  const options = {
+    academic_year_id: academicYears,
+    term_id: terms,
+    publisher_id: publishers,
+    stage_id: stages,
+    type_id: types,
+    language_id: languages,
+    subject_id: subjects,
+  };
 
   return (
     <div style={{ padding: "40px 48px 56px", display: "flex", flexDirection: "column", gap: 22 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <h1 className="heading-font" style={{ margin: 0, fontSize: 26, fontWeight: 800 }}>
-            الناشرون
-          </h1>
-          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
-            قائمة الناشرين المرجعية
-          </div>
-        </div>
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            style={{
-              background: "transparent",
-              border: "1px solid var(--border)",
-              borderRadius: 9,
-              padding: "9px 16px",
-              fontSize: 13.5,
-              color: "var(--text-muted)",
-            }}
-          >
-            تسجيل الخروج
-          </button>
-        </form>
-      </div>
+      <AppHeader title="حزم الكتب" subtitle="الوصول إلى حزمة والتعامل معها" />
 
-      <form
-        action={addPublisherAction}
+      <PobsFilterBar options={options} current={filters} />
+
+      {params.error ? (
+        <div
+          style={{
+            background: "oklch(0.945 0.05 25)",
+            color: "oklch(0.4 0.1 25)",
+            borderRadius: 9,
+            padding: "12px 16px",
+            fontSize: 14,
+          }}
+        >
+          {params.error}
+        </div>
+      ) : null}
+
+      <details
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border-soft)",
           borderRadius: 14,
-          padding: "18px 20px",
-          display: "flex",
-          gap: 12,
-          alignItems: "flex-end",
+          padding: "16px 20px",
         }}
       >
-        <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, maxWidth: 320 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
-            اسم الناشر
-          </span>
-          <input
-            type="text"
-            name="label"
-            required
-            style={{
-              border: "1px solid var(--border)",
-              borderRadius: 9,
-              padding: "10px 12px",
-              background: "var(--surface)",
-              color: "var(--text)",
-            }}
-          />
-        </label>
-        <button
-          type="submit"
-          className="heading-font"
+        <summary className="heading-font" style={{ fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          حزمة جديدة
+        </summary>
+        <form
+          action={createPobAction}
           style={{
-            background: "var(--accent)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 22px",
-            fontWeight: 700,
-            fontSize: 15,
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 14,
+            marginTop: 16,
           }}
         >
-          إضافة ناشر
-        </button>
-      </form>
+          {(
+            [
+              ["academic_year_id", "السنة", academicYears],
+              ["term_id", "الترم", terms],
+              ["publisher_id", "الناشر", publishers],
+              ["stage_id", "المرحلة", stages],
+              ["type_id", "النوع", types],
+              ["language_id", "اللغة", languages],
+              ["subject_id", "المادة", subjects],
+            ] as const
+          ).map(([name, label, list]) => (
+            <label key={name} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>{label}</span>
+              <select
+                name={name}
+                required
+                defaultValue=""
+                style={{
+                  border: "1px solid var(--border)",
+                  borderRadius: 9,
+                  padding: "10px 12px",
+                  background: "var(--surface)",
+                  color: "var(--text)",
+                  fontSize: 14,
+                }}
+              >
+                <option value="" disabled>
+                  اختر
+                </option>
+                {list.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>السعر (اختياري)</span>
+            <input
+              type="text"
+              name="price"
+              inputMode="decimal"
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 9,
+                padding: "10px 12px",
+                background: "var(--surface)",
+                color: "var(--text)",
+                fontSize: 14,
+              }}
+            />
+          </label>
+
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <button
+              type="submit"
+              className="heading-font"
+              style={{
+                background: "var(--accent)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                padding: "10px 22px",
+                fontWeight: 700,
+                fontSize: 15,
+                width: "100%",
+              }}
+            >
+              حفظ الحزمة
+            </button>
+          </div>
+        </form>
+      </details>
 
       <div style={{ background: "var(--surface)", border: "1px solid var(--border-soft)", borderRadius: 14, overflow: "hidden" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.8fr 140px 100px",
+            gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 110px",
             padding: "0 20px",
           }}
         >
-          <div className="heading-font" style={{ padding: "16px 6px", fontSize: 13, fontWeight: 700, color: "var(--text-muted)" }}>
-            الاسم
-          </div>
-          <div className="heading-font" style={{ padding: "16px 6px", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>
-            الترتيب
-          </div>
-          <div className="heading-font" style={{ padding: "16px 6px", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>
-            الحالة
-          </div>
+          {["المادة", "المرحلة", "الناشر", "النوع", "اللغة", "الترم", "السنة", "السعر"].map((h, i) => (
+            <div
+              key={h}
+              className="heading-font"
+              style={{
+                padding: "16px 6px",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                textAlign: i === 0 ? "start" : i === 7 ? "left" : "center",
+              }}
+            >
+              {h}
+            </div>
+          ))}
         </div>
-        {publishers.length === 0 ? (
+        {pobs.length === 0 ? (
           <div style={{ padding: "24px 20px", fontSize: 14, color: "var(--text-muted)", borderTop: "1px solid var(--border-soft)" }}>
-            لا يوجد ناشرون بعد
+            لا توجد حزم مطابقة
           </div>
         ) : (
-          publishers.map((p) => (
+          pobs.map((p) => (
             <div
               key={p.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "1.8fr 140px 100px",
+                gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 110px",
                 padding: "0 20px",
                 borderTop: "1px solid var(--border-soft)",
               }}
             >
-              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65 }}>{p.label}</div>
+              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65 }}>{p.subject?.label}</div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
-                {p.display_order}
+                {p.stage?.label}
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
-                {p.is_active ? "فعّال" : "معطَّل"}
+                {p.publisher?.label}
+              </div>
+              <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
+                {p.type?.label}
+              </div>
+              <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
+                {p.language?.label}
+              </div>
+              <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
+                {p.term?.label}
+              </div>
+              <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
+                {p.academic_year?.label}
+              </div>
+              <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "left", fontWeight: 700 }}>
+                {p.price != null ? p.price.toFixed(2) : "—"}
               </div>
             </div>
           ))

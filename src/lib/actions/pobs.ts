@@ -1,0 +1,24 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { createPob } from "@/lib/db/pobs";
+
+export async function createPobAction(formData: FormData) {
+  try {
+    await createPob({
+      academic_year_id: String(formData.get("academic_year_id") ?? ""),
+      term_id: String(formData.get("term_id") ?? ""),
+      publisher_id: String(formData.get("publisher_id") ?? ""),
+      stage_id: String(formData.get("stage_id") ?? ""),
+      type_id: String(formData.get("type_id") ?? ""),
+      language_id: String(formData.get("language_id") ?? ""),
+      subject_id: String(formData.get("subject_id") ?? ""),
+      price: String(formData.get("price") ?? ""),
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "تعذّر إنشاء الحزمة";
+    redirect(`/?error=${encodeURIComponent(message)}`);
+  }
+
+  redirect("/");
+}
