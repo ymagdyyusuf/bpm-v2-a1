@@ -44,7 +44,7 @@
 
 | ماذا | أين |
 |---|---|
-| الموقع الحي | `<املأ بعد أول نشر>` |
+| الموقع الحي | https://bpm-v2-a1.vercel.app |
 | المستودع | https://github.com/ymagdyyusuf/bpm-v2-a1 |
 | قاعدة البيانات | https://toqohcmzjkiobirhwadr.supabase.co |
 | لوحة النشر | `<املأ>` |
