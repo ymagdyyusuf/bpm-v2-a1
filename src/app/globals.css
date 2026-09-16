@@ -1,0 +1,52 @@
+:root {
+  --bg: oklch(0.98 0.006 80);
+  --surface: oklch(0.995 0.004 80);
+  --border: oklch(0.87 0.013 80);
+  --border-soft: oklch(0.925 0.009 80);
+  --row-hover: oklch(0.975 0.007 80);
+  --text: oklch(0.26 0.02 260);
+  --text-muted: oklch(0.52 0.02 260);
+  --text-faint: oklch(0.55 0.015 260);
+  --accent: oklch(0.42 0.09 235);
+  --accent-strong: oklch(0.35 0.09 235);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 15px;
+}
+
+.heading-font {
+  font-family: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-strong);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
+  font-size: 15px;
+}

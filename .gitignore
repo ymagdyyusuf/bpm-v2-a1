@@ -12,6 +12,8 @@ supabase/.temp/
 # Next.js build output
 .next/
 out/
+tsconfig.tsbuildinfo
+next-env.d.ts
 
 # Misc
 .DS_Store

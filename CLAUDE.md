@@ -79,7 +79,8 @@ src/app/         شاشات — تعرض بس
 src/components/  عناصر واجهة مشتركة
 src/lib/         منطق الأعمال — لا JSX
 src/lib/db/      الوصول لقاعدة البيانات
-migrations/      تغييرات المخطط، مرقّمة
+src/lib/actions/ Server Actions — تستدعي src/lib فقط
+supabase/migrations/  تغييرات المخطط، بالصيغة اللي يفرضها Supabase CLI (D-41)
 docs/draft/      مسودات مؤقتة
 ```
 
