@@ -1,10 +1,12 @@
 import { listPobs, type PobFilters } from "@/lib/db/pobs";
 import { listAcademicYears, listTerms, listStages, listTypes, listLanguages, listSubjects } from "@/lib/db/reference";
 import { listPublishers } from "@/lib/db/publishers";
+import { getPobStatusesFor } from "@/lib/db/events";
 import { createPobAction } from "@/lib/actions/pobs";
 import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
 import { PobsFilterBar } from "@/components/PobsFilterBar";
+import { StatusBadge } from "@/components/StatusBadge";
 import { errorBannerStyle, noticeBannerStyle, inactiveBadgeStyle } from "@/components/formStyles";
 
 const FILTER_KEYS = [
@@ -39,6 +41,8 @@ export default async function PobsPage({
     listLanguages(),
     listSubjects(),
   ]);
+
+  const statuses = await getPobStatusesFor(pobs.map((p) => p.id));
 
   // D-31: السنة رقم — تُعرض عربية، والقيمة (uuid) خلف الكواليس تبقى كما هي للفلترة والترتيب
   const academicYears = academicYearsRaw.map((y) => ({ ...y, label: toArabicDigits(y.label) }));
@@ -162,11 +166,11 @@ export default async function PobsPage({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 110px",
+            gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 130px 110px",
             padding: "0 20px",
           }}
         >
-          {["المادة", "المرحلة", "الناشر", "النوع", "اللغة", "الترم", "السنة", "السعر"].map((h, i) => (
+          {["المادة", "المرحلة", "الناشر", "النوع", "اللغة", "الترم", "السنة", "الحالة", "السعر"].map((h, i) => (
             <div
               key={h}
               className="heading-font"
@@ -175,7 +179,7 @@ export default async function PobsPage({
                 fontSize: 13,
                 fontWeight: 700,
                 color: "var(--text-muted)",
-                textAlign: i === 0 ? "start" : i === 7 ? "left" : "center",
+                textAlign: i === 0 ? "start" : i === 8 ? "left" : "center",
               }}
             >
               {h}
@@ -192,7 +196,7 @@ export default async function PobsPage({
               key={p.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 110px",
+                gridTemplateColumns: "minmax(200px,1.6fr) 118px 118px 96px 108px 88px 82px 130px 110px",
                 padding: "0 20px",
                 borderTop: "1px solid var(--border-soft)",
               }}
@@ -220,6 +224,9 @@ export default async function PobsPage({
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
                 {toArabicDigits(p.academic_year?.label)}
+              </div>
+              <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <StatusBadge status={statuses[p.id] ?? { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null }} />
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "left", fontWeight: 700 }}>
                 {p.price != null ? toArabicDigits(p.price.toFixed(2)) : "—"}

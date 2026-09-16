@@ -10,27 +10,25 @@ export default async function NewEventPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string; componentId: string }>;
-  searchParams: Promise<{ error?: string }>;
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; component_id?: string }>;
 }) {
-  const { id, componentId } = await params;
-  const { error } = await searchParams;
+  const { id } = await params;
+  const { error, component_id: preselectedComponentId } = await searchParams;
 
-  const [pob, components, actions] = await Promise.all([
-    getPob(id),
-    listComponentsForPob(id),
-    listActions(),
-  ]);
+  const [pob, components, actions] = await Promise.all([getPob(id), listComponentsForPob(id), listActions()]);
 
   if (!pob) notFound();
-  const component = components.find((c) => c.id === componentId);
-  if (!component) notFound();
+
+  const preselected = preselectedComponentId
+    ? components.find((c) => c.id === preselectedComponentId)
+    : undefined;
 
   return (
     <div style={{ padding: "36px 48px 56px", display: "flex", flexDirection: "column", gap: 24 }}>
       <AppHeader
         title="تسجيل حدث"
-        subtitle={`${component.name ?? component.kind?.label ?? ""} — ${pob.subject?.label ?? ""}`}
+        subtitle={preselected ? `${preselected.name ?? preselected.kind?.label ?? ""}` : `${pob.subject?.label ?? ""} — الحزمة كلها`}
       />
 
       <a href={`/pobs/${pob.id}`} style={{ fontSize: 13.5, fontWeight: 600 }}>
@@ -52,7 +50,18 @@ export default async function NewEventPage({
         }}
       >
         <input type="hidden" name="pob_id" value={pob.id} />
-        <input type="hidden" name="component_id" value={component.id} />
+
+        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={fieldLabelStyle}>على إيه؟</span>
+          <select name="component_id" defaultValue={preselected?.id ?? ""} style={selectStyle}>
+            <option value="">الحزمة كلها</option>
+            {components.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name ?? c.kind?.label ?? c.category?.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={fieldLabelStyle}>الإجراء</span>
@@ -73,8 +82,6 @@ export default async function NewEventPage({
           <span style={fieldLabelStyle}>رقم البروفة (لو الإجراء بروفة)</span>
           <input type="text" name="proof_number" inputMode="numeric" style={selectStyle} />
         </label>
-
-        <div />
 
         <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={fieldLabelStyle}>الميعاد المتوقع</span>

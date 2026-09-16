@@ -37,8 +37,18 @@ function toStatusInput(rows: EventRow[]): EventForStatus[] {
   }));
 }
 
-/** خريطة component_id → موقفه الحالي (D-25)، لكل مكوّنات حزمة واحدة بجلبة واحدة. */
-export async function getComponentStatuses(pobId: string): Promise<Record<string, ComponentStatus>> {
+export type PobStatuses = {
+  /** موقف كل مكوّن — من أحداثه المباشرة فقط (D-25). */
+  components: Record<string, ComponentStatus>;
+  /**
+   * حالة الحزمة كلها — من كل أحداثها، سواء على مكوّن بعينه أو على
+   * الحزمة ذاتها (component_id فارغ). [قاله يوسف] لا أحداث = لم يبدأ.
+   */
+  pob: ComponentStatus;
+};
+
+/** يجلب أحداث الحزمة مرة واحدة ويحسب منها موقف كل مكوّن وموقف الحزمة كلها معاً. */
+export async function getPobStatuses(pobId: string): Promise<PobStatuses> {
   const events = await listEventsForPob(pobId);
   const byComponent = new Map<string, EventRow[]>();
 
@@ -49,9 +59,33 @@ export async function getComponentStatuses(pobId: string): Promise<Record<string
     byComponent.set(e.component_id, list);
   }
 
-  const result: Record<string, ComponentStatus> = {};
+  const components: Record<string, ComponentStatus> = {};
   for (const [componentId, rows] of byComponent) {
-    result[componentId] = computeStatus(toStatusInput(rows));
+    components[componentId] = computeStatus(toStatusInput(rows));
+  }
+
+  return { components, pob: computeStatus(toStatusInput(events)) };
+}
+
+/** موقف كل حزمة من مجموعة حزم بجلبة واحدة — لعمود "الحالة" في قائمة الحزم. */
+export async function getPobStatusesFor(pobIds: string[]): Promise<Record<string, ComponentStatus>> {
+  if (pobIds.length === 0) return {};
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("events").select(EVENT_SELECT).in("pob_id", pobIds);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as EventRow[];
+  const byPob = new Map<string, EventRow[]>();
+  for (const e of rows) {
+    const list = byPob.get(e.pob_id) ?? [];
+    list.push(e);
+    byPob.set(e.pob_id, list);
+  }
+
+  const result: Record<string, ComponentStatus> = {};
+  for (const pobId of pobIds) {
+    result[pobId] = computeStatus(toStatusInput(byPob.get(pobId) ?? []));
   }
   return result;
 }

@@ -7,7 +7,9 @@ import { createEvent } from "@/lib/db/events";
 export async function createEventAction(formData: FormData) {
   const pobId = String(formData.get("pob_id") ?? "");
   const componentId = String(formData.get("component_id") ?? "") || null;
-  const returnTo = componentId ? `/pobs/${pobId}/components/${componentId}/events/new` : `/pobs/${pobId}`;
+  const returnTo = componentId
+    ? `/pobs/${pobId}/events/new?component_id=${componentId}`
+    : `/pobs/${pobId}/events/new`;
 
   try {
     await createEvent({
