@@ -34,6 +34,13 @@ const POB_SELECT = `
   subject:subjects(label)
 `;
 
+export async function getPob(id: string): Promise<Pob | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("pobs").select(POB_SELECT).eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data as unknown as Pob | null;
+}
+
 export async function listPobs(filters: PobFilters): Promise<Pob[]> {
   const supabase = await createClient();
   let query = supabase.from("pobs").select(POB_SELECT).order("created_at", { ascending: false });

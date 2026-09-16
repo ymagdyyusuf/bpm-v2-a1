@@ -23,3 +23,5 @@ export const listStages = () => listOptions("stages");
 export const listTypes = () => listOptions("types");
 export const listLanguages = () => listOptions("languages");
 export const listSubjects = () => listOptions("subjects");
+export const listComponentCategories = () => listOptions("component_categories");
+export const listComponentKinds = () => listOptions("component_kinds");

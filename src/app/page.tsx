@@ -207,7 +207,11 @@ export default async function PobsPage({
                 borderTop: "1px solid var(--border-soft)",
               }}
             >
-              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65 }}>{p.subject?.label}</div>
+              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65 }}>
+                <a href={`/pobs/${p.id}`} style={{ color: "var(--text)", fontWeight: 600 }}>
+                  {p.subject?.label}
+                </a>
+              </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
                 {p.stage?.label}
               </div>
