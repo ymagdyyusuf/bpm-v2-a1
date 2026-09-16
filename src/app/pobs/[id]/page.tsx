@@ -228,8 +228,9 @@ export default async function PobDetailPage({
                   <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", fontSize: 14, color: "var(--text-muted)" }}>
                     {c.kind?.label}
                   </div>
-                  <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", fontSize: 15, lineHeight: 1.65 }}>
+                  <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", gap: 8, fontSize: 15, lineHeight: 1.65 }}>
                     {c.name ?? "—"}
+                    {!c.is_active ? <span style={inactiveBadgeStyle}>معطَّل</span> : null}
                   </div>
                   <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "var(--text-muted)" }}>
                     {size}

@@ -11,13 +11,14 @@ export type Component = {
   display_order: number;
   category_id: string;
   kind_id: string;
+  is_active: boolean;
   category: { label: string; display_order: number } | null;
   kind: { label: string } | null;
 };
 
 const COMPONENT_SELECT = `
   id, name, page_width_cm, page_height_cm, page_count, colors, display_order,
-  category_id, kind_id,
+  category_id, kind_id, is_active,
   category:component_categories(label, display_order),
   kind:component_kinds(label)
 `;
@@ -79,11 +80,25 @@ export type DeleteComponentResult =
 
 /**
  * D-47: نفس قاعدة الحزمة — يُحذف نهائياً لو فاضٍ من تبعيات، وغير كده يُعطَّل.
- * لا جدول (أصول/أحداث) بيشير للمكوّن حالياً، فالحذف دايماً نهائي اليوم؛
- * لما تُبنى الأصول لاحقاً هذا الفحص لازم يتوسّع بنفس منطق deletePob.
+ * events.component_id بقى يشير للمكوّن منذ شريحة ٥ (اكتُشف الفحص الناقص
+ * هنا أثناء إثبات شريحة ٥ نفسه — FK كان سيرفض الحذف بخطأ خام بدل تعطيل
+ * مفهوم). لما تُبنى الأصول لاحقاً، تُضاف لنفس الفحص.
  */
 export async function deleteComponent(id: string): Promise<DeleteComponentResult> {
   const supabase = await createClient();
+
+  const { count, error: countError } = await supabase
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("component_id", id);
+  if (countError) throw countError;
+
+  if (count && count > 0) {
+    const { error } = await supabase.from("components").update({ is_active: false }).eq("id", id);
+    if (error) throw error;
+    return { action: "deactivated" };
+  }
+
   const { error } = await supabase.from("components").delete().eq("id", id);
   if (error) throw error;
   return { action: "deleted" };

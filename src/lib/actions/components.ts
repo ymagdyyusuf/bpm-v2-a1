@@ -48,13 +48,15 @@ export async function deleteComponentAction(formData: FormData) {
   const pobId = String(formData.get("pob_id") ?? "");
   const componentId = String(formData.get("component_id") ?? "");
 
+  let result;
   try {
-    await deleteComponent(componentId);
+    result = await deleteComponent(componentId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "تعذّر حذف المكوّن";
     redirect(`/pobs/${pobId}/components/${componentId}/edit?error=${encodeURIComponent(message)}`);
   }
 
   revalidatePath(`/pobs/${pobId}`);
-  redirect(`/pobs/${pobId}?notice=${encodeURIComponent("تم حذف المكوّن")}`);
+  const notice = result.action === "deactivated" ? "المكوّن عليه أحداث، فتم تعطيله بدل حذفه" : "تم حذف المكوّن نهائياً";
+  redirect(`/pobs/${pobId}?notice=${encodeURIComponent(notice)}`);
 }
