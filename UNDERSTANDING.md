@@ -363,14 +363,89 @@ Statistics · Mathematics Applications · General Mathematics · Pure Mathematic
 
 ---
 
-## ٦. تدفق البيانات — مين يكتب إيه — *(المرحلة ٣)*
+## ٦. الهندسة ونموذج البيانات — *(المرحلة ٤)*
 
-> **كل حقل له كاتب واحد.** اتنين بيكتبوا نفس الحقل = فيه غلط في الفهم، ارجع للمرحلة ٢.
+### الـstack
+- [قاله يوسف] Next.js + Supabase + Vercel + TypeScript
 
-| البيانات | الكاتب الوحيد | القارئ |
-|---|---|---|
-| | | |
+### القوائم المرجعية — 12 جدول
+بنفس الشكل: id · label · display_order · is_active
+```
+academic_years · terms · publishers · stages · types · languages ·
+component_categories · component_kinds · index_node_types · departments
+```
+subjects: + group_id → subjects(id) · فارغ حالياً (مفصل D-06)
+actions:  + requires_number (صح للبروفة فقط)
 
-### المخطط
+### الجداول الأساسية
 
-<!-- مخطط التدفق — الصورة بتكشف تناقضات النص -->
+```
+profiles
+  id · full_name · role (علمي | إدخال | تقارير)
+
+pobs
+  id · academic_year_id · term_id · publisher_id · stage_id ·
+  type_id · language_id · subject_id · price · is_active · created_at
+  UNIQUE (السبعة مجتمعة)
+
+components
+  id · pob_id→pobs · category_id · kind_id · name ·
+  page_width_cm · page_height_cm · page_count · sheet_count ·
+  form_count · color_count · display_order
+  INDEX (pob_id)
+
+index_nodes
+  id · component_id→components · parent_id→index_nodes ·
+  node_type_id · label · number · source_node_id→index_nodes ON DELETE SET NULL
+  INDEX (component_id) · INDEX (parent_id)
+
+events
+  id · pob_id→pobs · component_id→components · node_id→index_nodes ·
+  action_id · proof_number · date_expected · date_actual ·
+  is_blocked · block_reason · note · created_by→profiles · created_at
+  INDEX (pob_id, component_id, created_at)
+  INDEX (is_blocked) WHERE is_blocked = true
+
+asset_series
+  id · series_number · created_at
+
+assets
+  id · series_id→asset_series · version · pob_id→pobs ·
+  component_id→components · label · has_physical · has_digital ·
+  qr_payload · text_code · handover_target_id→departments ·
+  handover_form · handover_date · created_at
+  UNIQUE (series_id, version) · UNIQUE (text_code) · INDEX (pob_id)
+
+asset_nodes
+  asset_id→assets · node_id→index_nodes
+  PRIMARY KEY (asset_id, node_id)
+```
+
+### قواعد العمل — لكل واحدة اختبار (R-9)
+- مستوى الحدث مشتق لا مخزَّن: node_id موجود → بند؛ وإلا component_id → مكوّن؛ وإلا → حزمة
+- الموقف الحالي لأي مكوّن = الحدث الأحدث بترتيب COALESCE(date_actual, date_expected) تنازلياً ثم created_at
+- المكوّن معطَّل إذا كان آخر حدث عليه is_blocked = صح؛ وحدث جديد غير معطَّل يفكّه
+- يُرفض حدث بلا date_expected وبلا date_actual
+- يُرفض is_blocked = صح بلا block_reason
+- proof_number مطلوب إذا actions.requires_number وممنوع فيما عداها
+- حقول الإيكال الثلاثة: كلها فارغة أو كلها ممتلئة
+- كل بند في asset_nodes يجب أن يكون تابعاً لـ assets.component_id
+- حزمة عليها حدث واحد على الأقل لا تُحذف — تُعطَّل بـ is_active
+- بند فهرس مستعمَل في حدث أو أصل لا يُحذف
+- قيمة مرجعية مستعمَلة لا تُحذف — تُعطَّل بـ is_active
+- الحدث لا يُحذف ولا يُعدَّل (D-02)
+
+### الصلاحيات
+- القراءة: كل مستخدم مسجَّل يقرأ كل الجداول
+- الكتابة: حسب جدول §٣ بالضبط
+- RLS تعمل على مستوى الصف، وجدول §٣ يقسّم الكتابة داخل الصف الواحد،
+  لذا تُطبَّق عبر دالة trigger على pobs وcomponents تقارن الأعمدة المتغيّرة بأعمدة دور المستخدم
+
+### الحدود — أربع وحدات
+```
+الحزم    : pobs · components                    — مستقلة
+الفهرس   : index_nodes                          — تعتمد على الحزم
+الأصول   : asset_series · assets · asset_nodes  — تعتمد على الحزم والفهرس
+التقارير : بلا جداول                             — تقرأ فقط، ولا أحد يعتمد عليها
+```
+كل التجميعات في src/lib/reports/ — ملف لكل تقرير، ولا سطر تجميع خارجها (D-18)
