@@ -384,7 +384,8 @@ academic_years · terms · publishers · stages · types · languages ·
 component_categories · component_kinds · index_node_types · departments
 ```
 subjects: + group_id → subjects(id) · فارغ حالياً (مفصل D-06)
-actions:  + requires_number (صح للبروفة فقط)
+actions:  + requires_number (صح للبروفة فقط) · is_terminal (صح لإجراء "تم الانتهاء" فقط — D-50)
+component_categories: + is_gift (صح لفئة "هدية" فقط — D-50)
 
 ### الجداول الأساسية
 

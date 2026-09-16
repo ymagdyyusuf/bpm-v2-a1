@@ -11,14 +11,14 @@ import {
 const EVENT_SELECT = `
   id, pob_id, component_id, action_id, proof_number, date_expected, date_actual,
   is_blocked, block_reason, note, created_at,
-  action:actions(label)
+  action:actions(label, is_terminal)
 `;
 
 type EventRow = {
   id: string;
   pob_id: string;
   component_id: string | null;
-  action: { label: string } | null;
+  action: { label: string; is_terminal: boolean } | null;
   date_expected: string | null;
   date_actual: string | null;
   created_at: string;
@@ -36,6 +36,7 @@ export async function listEventsForPob(pobId: string): Promise<EventRow[]> {
 function toStatusInput(rows: EventRow[]): EventForStatus[] {
   return rows.map((r) => ({
     action_label: r.action?.label ?? "",
+    action_is_terminal: r.action?.is_terminal ?? false,
     date_expected: r.date_expected,
     date_actual: r.date_actual,
     created_at: r.created_at,

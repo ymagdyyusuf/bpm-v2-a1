@@ -77,6 +77,7 @@ describe("resolveEventInput — D-29 تاريخ افتراضي", () => {
 describe("computeStatus", () => {
   const blocked: EventForStatus = {
     action_label: "تعديلات",
+    action_is_terminal: false,
     date_expected: "2026-09-01",
     date_actual: null,
     created_at: "2026-09-01T10:00:00Z",
@@ -85,6 +86,7 @@ describe("computeStatus", () => {
   };
   const unblockedLater: EventForStatus = {
     action_label: "دخول",
+    action_is_terminal: false,
     date_expected: null,
     date_actual: "2026-09-05",
     created_at: "2026-09-05T10:00:00Z",
@@ -93,6 +95,7 @@ describe("computeStatus", () => {
   };
   const finished: EventForStatus = {
     action_label: "تم الانتهاء",
+    action_is_terminal: true,
     date_expected: null,
     date_actual: "2026-09-10",
     created_at: "2026-09-10T10:00:00Z",
@@ -103,6 +106,7 @@ describe("computeStatus", () => {
   it("الحالة العادية: آخر حدث بروفة بميعاد متوقع بلا فعلي → جارٍ", () => {
     const proof: EventForStatus = {
       action_label: "بروفة",
+      action_is_terminal: false,
       date_expected: "2026-09-17",
       date_actual: null,
       created_at: "2026-09-17T09:00:00Z",
@@ -125,9 +129,38 @@ describe("computeStatus", () => {
   });
 });
 
+describe("computeStatus — الربط بالمعرّف لا بالاسم (معيار الكود #٤)", () => {
+  it("إعادة تسمية إجراء 'تم الانتهاء' لا تغيّر الموقف — العلم هو الحاكم، لا النص", () => {
+    const renamedButTerminal: EventForStatus = {
+      action_label: "الإجراء اتغيّر اسمه من الشاشة",
+      action_is_terminal: true,
+      date_expected: null,
+      date_actual: "2026-09-17",
+      created_at: "2026-09-17T09:00:00Z",
+      is_blocked: false,
+      block_reason: null,
+    };
+    expect(computeStatus([renamedButTerminal]).progress).toBe("منتهية");
+  });
+
+  it("إجراء باسم يشبه 'تم الانتهاء' لكن علمه غير مُنهٍ → جارٍ لا منتهية", () => {
+    const lookalikeNotTerminal: EventForStatus = {
+      action_label: "تم الانتهاء", // نص مطابق تماماً، بالمصادفة أو بغلطة إدخال — لازم يتجاهله
+      action_is_terminal: false,
+      date_expected: null,
+      date_actual: "2026-09-17",
+      created_at: "2026-09-17T09:00:00Z",
+      is_blocked: false,
+      block_reason: null,
+    };
+    expect(computeStatus([lookalikeNotTerminal]).progress).toBe("جارٍ");
+  });
+});
+
 describe("computeComponentStatus — D-49 (موقف المكوّن = أحداثه الخاصة + أحداث حزمته)", () => {
   const pobEventOld: EventForStatus = {
     action_label: "دخول",
+    action_is_terminal: false,
     date_expected: null,
     date_actual: "2026-09-01",
     created_at: "2026-09-01T09:00:00Z",
@@ -136,6 +169,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
   };
   const pobEventNew: EventForStatus = {
     action_label: "تم الانتهاء",
+    action_is_terminal: true,
     date_expected: null,
     date_actual: "2026-09-20",
     created_at: "2026-09-20T09:00:00Z",
@@ -144,6 +178,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
   };
   const componentEventOld: EventForStatus = {
     action_label: "بروفة",
+    action_is_terminal: false,
     date_expected: "2026-09-05",
     date_actual: null,
     created_at: "2026-09-05T09:00:00Z",
@@ -152,6 +187,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
   };
   const componentEventNew: EventForStatus = {
     action_label: "تم الانتهاء",
+    action_is_terminal: true,
     date_expected: null,
     date_actual: "2026-09-15",
     created_at: "2026-09-15T09:00:00Z",
@@ -160,6 +196,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
   };
   const pobBlockEvent: EventForStatus = {
     action_label: "تعديلات",
+    action_is_terminal: false,
     date_expected: null,
     date_actual: "2026-09-25",
     created_at: "2026-09-25T09:00:00Z",

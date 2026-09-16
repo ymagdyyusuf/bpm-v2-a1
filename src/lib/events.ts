@@ -58,7 +58,10 @@ export function resolveEventInput(input: EventFormInput): ResolvedEvent {
 }
 
 export type EventForStatus = {
+  /** للعرض فقط — ممنوع أي مقارنة بيه (معيار الكود #٤: الربط بالمعرّف لا بالاسم). */
   action_label: string;
+  /** [قاله يوسف] علم actions.is_terminal — هو اللي يحدد "منتهية"، لا اسم الإجراء. */
+  action_is_terminal: boolean;
   date_expected: string | null;
   date_actual: string | null;
   created_at: string;
@@ -95,7 +98,7 @@ export function computeStatus(events: EventForStatus[]): ComponentStatus {
   })[0];
 
   return {
-    progress: latest.action_label === "تم الانتهاء" ? "منتهية" : "جارٍ",
+    progress: latest.action_is_terminal ? "منتهية" : "جارٍ",
     isBlocked: latest.is_blocked,
     blockReason: latest.is_blocked ? latest.block_reason : null,
     lastAction: latest.action_label,
