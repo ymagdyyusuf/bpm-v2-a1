@@ -210,6 +210,7 @@ export default async function PobDetailPage({
                 isBlocked: false,
                 blockReason: null,
                 lastAction: null,
+                lastProofNumber: null,
               };
               return (
                 <div

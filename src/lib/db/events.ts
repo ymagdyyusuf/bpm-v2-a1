@@ -19,6 +19,7 @@ type EventRow = {
   pob_id: string;
   component_id: string | null;
   action: { label: string; is_terminal: boolean } | null;
+  proof_number: number | null;
   date_expected: string | null;
   date_actual: string | null;
   created_at: string;
@@ -42,6 +43,7 @@ function toStatusInput(rows: EventRow[]): EventForStatus[] {
     created_at: r.created_at,
     is_blocked: r.is_blocked,
     block_reason: r.block_reason,
+    proof_number: r.proof_number,
   }));
 }
 

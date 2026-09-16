@@ -83,6 +83,7 @@ describe("computeStatus", () => {
     created_at: "2026-09-01T10:00:00Z",
     is_blocked: true,
     block_reason: "متوقف على المراجعة",
+    proof_number: null,
   };
   const unblockedLater: EventForStatus = {
     action_label: "دخول",
@@ -92,6 +93,7 @@ describe("computeStatus", () => {
     created_at: "2026-09-05T10:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
   const finished: EventForStatus = {
     action_label: "تم الانتهاء",
@@ -101,6 +103,7 @@ describe("computeStatus", () => {
     created_at: "2026-09-10T10:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
 
   it("الحالة العادية: آخر حدث بروفة بميعاد متوقع بلا فعلي → جارٍ", () => {
@@ -112,6 +115,7 @@ describe("computeStatus", () => {
       created_at: "2026-09-17T09:00:00Z",
       is_blocked: false,
       block_reason: null,
+      proof_number: 1,
     };
     expect(computeStatus([proof]).progress).toBe("جارٍ");
   });
@@ -139,6 +143,7 @@ describe("computeStatus — الربط بالمعرّف لا بالاسم (مع�
       created_at: "2026-09-17T09:00:00Z",
       is_blocked: false,
       block_reason: null,
+      proof_number: null,
     };
     expect(computeStatus([renamedButTerminal]).progress).toBe("منتهية");
   });
@@ -152,6 +157,7 @@ describe("computeStatus — الربط بالمعرّف لا بالاسم (مع�
       created_at: "2026-09-17T09:00:00Z",
       is_blocked: false,
       block_reason: null,
+      proof_number: null,
     };
     expect(computeStatus([lookalikeNotTerminal]).progress).toBe("جارٍ");
   });
@@ -166,6 +172,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
     created_at: "2026-09-01T09:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
   const pobEventNew: EventForStatus = {
     action_label: "تم الانتهاء",
@@ -175,6 +182,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
     created_at: "2026-09-20T09:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
   const componentEventOld: EventForStatus = {
     action_label: "بروفة",
@@ -184,6 +192,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
     created_at: "2026-09-05T09:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
   const componentEventNew: EventForStatus = {
     action_label: "تم الانتهاء",
@@ -193,6 +202,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
     created_at: "2026-09-15T09:00:00Z",
     is_blocked: false,
     block_reason: null,
+    proof_number: null,
   };
   const pobBlockEvent: EventForStatus = {
     action_label: "تعديلات",
@@ -202,6 +212,7 @@ describe("computeComponentStatus — D-49 (موقف المكوّن = أحداث�
     created_at: "2026-09-25T09:00:00Z",
     is_blocked: true,
     block_reason: "متوقف على موافقة الوزارة",
+    proof_number: null,
   };
 
   it("حدث حزمة وحده (المكوّن بلا أحداث خاصة) → كل المكوّنات تأخذه", () => {

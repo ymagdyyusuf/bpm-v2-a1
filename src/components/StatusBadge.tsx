@@ -1,4 +1,5 @@
 import type { ComponentStatus } from "@/lib/events";
+import { toArabicDigits } from "@/lib/numerals";
 
 export const STATUS_STYLE: Record<ComponentStatus["progress"], { bg: string; text: string }> = {
   "لم يبدأ": { bg: "oklch(0.93 0.006 260)", text: "oklch(0.40 0.012 260)" },
@@ -24,6 +25,12 @@ export function StatusBadge({ status }: { status: ComponentStatus }) {
       >
         {status.progress}
       </span>
+      {status.lastAction ? (
+        <span style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.4 }}>
+          {status.lastAction}
+          {status.lastProofNumber != null ? ` رقم ${toArabicDigits(status.lastProofNumber)}` : ""}
+        </span>
+      ) : null}
       {status.isBlocked ? (
         <span style={{ fontSize: 11.5, fontWeight: 600, color: "oklch(0.45 0.12 25)", textAlign: "center", lineHeight: 1.4 }}>
           معطَّل: {status.blockReason}

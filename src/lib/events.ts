@@ -67,6 +67,7 @@ export type EventForStatus = {
   created_at: string;
   is_blocked: boolean;
   block_reason: string | null;
+  proof_number: number | null;
 };
 
 export type ComponentStatus = {
@@ -74,6 +75,7 @@ export type ComponentStatus = {
   isBlocked: boolean;
   blockReason: string | null;
   lastAction: string | null;
+  lastProofNumber: number | null;
 };
 
 /** D-25: آخر حدث = الأحدث بـCOALESCE(date_actual, date_expected) ثم created_at. */
@@ -87,7 +89,7 @@ function sortKey(e: EventForStatus): [string, string] {
  */
 export function computeStatus(events: EventForStatus[]): ComponentStatus {
   if (events.length === 0) {
-    return { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null };
+    return { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null, lastProofNumber: null };
   }
 
   const latest = [...events].sort((a, b) => {
@@ -102,6 +104,7 @@ export function computeStatus(events: EventForStatus[]): ComponentStatus {
     isBlocked: latest.is_blocked,
     blockReason: latest.is_blocked ? latest.block_reason : null,
     lastAction: latest.action_label,
+    lastProofNumber: latest.proof_number,
   };
 }
 

@@ -226,7 +226,7 @@ export default async function PobsPage({
                 {toArabicDigits(p.academic_year?.label)}
               </div>
               <div style={{ padding: "12px 6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <StatusBadge status={statuses[p.id] ?? { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null }} />
+                <StatusBadge status={statuses[p.id] ?? { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null, lastProofNumber: null }} />
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "left", fontWeight: 700 }}>
                 {p.price != null ? toArabicDigits(p.price.toFixed(2)) : "—"}
