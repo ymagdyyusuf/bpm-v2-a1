@@ -65,7 +65,6 @@ page_width_cm  · decimal · اختياري
 page_height_cm · decimal · اختياري
 page_count     · integer · اختياري
 sheet_count    · integer · اختياري
-form_count     · integer · اختياري
 color_count    · integer · اختياري
 display_order  · integer · ترقيم العرض داخل فئته
 ```
@@ -226,7 +225,7 @@ Statistics · Mathematics Applications · General Mathematics · Pure Mathematic
 - [قاله يوسف] القسم العلمي يكتب في pob: السنة · الترم · الناشر · المرحلة · النوع · اللغة · المادة
 - [قاله يوسف] القسم العلمي يكتب في component: category_id · kind_id · name
 - [قاله يوسف] مدخل البيانات يكتب في pob: price
-- [قاله يوسف] مدخل البيانات يكتب في component: display_order · المقاس · page_count · sheet_count · form_count · color_count
+- [قاله يوسف] مدخل البيانات يكتب في component: display_order · المقاس · page_count · sheet_count · color_count
 - [قاله يوسف] مدخل البيانات يكتب كل حقول event
 - [قاله يوسف] مقاس الصفحة يتحدد بعد رجوعه من المطبعة، فكاتبه مدخل البيانات
 - [قاله يوسف] "منفّذ الأصول" (A-01، مؤجّل) سيكتب أحداثاً على الأصول مستقبلاً
@@ -329,7 +328,7 @@ Statistics · Mathematics Applications · General Mathematics · Pure Mathematic
 #### ش-٧ · بيانات الإنتاج
 الغرض: إدخال أرقام المطبعة والسعر
 تعرض: مكوّنات الحزمة وأرقامها الحالية
-تفعل: تحرير المقاس · الصفحات · الأوراق · الملازم · الألوان · الترتيب · السعر
+تفعل: تحرير المقاس · الصفحات · الأوراق · الألوان · الترتيب · السعر
 لا تفعل: لا تضيف ولا تحذف مكوّناً — كاتبه القسم العلمي
 المصدر: §٣ · D-07
 
@@ -403,7 +402,7 @@ pobs
 components
   id · pob_id→pobs · category_id · kind_id · name ·
   page_width_cm · page_height_cm · page_count · sheet_count ·
-  form_count · color_count · display_order
+  color_count · display_order
   INDEX (pob_id)
 
 index_nodes
