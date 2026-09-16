@@ -141,7 +141,9 @@ export default async function EditComponentPage({
       >
         <input type="hidden" name="pob_id" value={pob.id} />
         <input type="hidden" name="component_id" value={component.id} />
-        <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>حذف المكوّن نهائي.</p>
+        <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+          حذف المكوّن نهائي — لا تبعيات عليه حالياً.
+        </p>
         <button type="submit" className="heading-font" style={dangerButtonStyle}>
           حذف المكوّن
         </button>

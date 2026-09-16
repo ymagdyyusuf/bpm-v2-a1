@@ -4,6 +4,7 @@ import { parsePobPrice } from "@/lib/pobs";
 export type Pob = {
   id: string;
   price: number | null;
+  is_active: boolean;
   academic_year_id: string;
   term_id: string;
   publisher_id: string;
@@ -31,7 +32,7 @@ export type PobFilters = {
 };
 
 const POB_SELECT = `
-  id, price,
+  id, price, is_active,
   academic_year_id, term_id, publisher_id, stage_id, type_id, language_id, subject_id,
   academic_year:academic_years(label),
   term:terms(label),
@@ -108,8 +109,31 @@ export async function updatePob(id: string, input: PobFormInput): Promise<void> 
   }
 }
 
-export async function deletePob(id: string): Promise<void> {
+export type DeletePobResult =
+  | { action: "deleted" }
+  | { action: "deactivated"; componentCount: number };
+
+/**
+ * D-47: حزمة بلا مكوّنات وبلا أحداث تُحذف نهائياً؛ غير كده تُعطَّل بدل الحذف.
+ * الأحداث لسه مش موجودة كجدول (شريحة قادمة) — الفحص هنا على المكوّنات فقط
+ * حالياً؛ لما تُبنى الأحداث، هذا الفحص لازم يتوسّع ليشملها (D-48).
+ */
+export async function deletePob(id: string): Promise<DeletePobResult> {
   const supabase = await createClient();
+
+  const { count, error: countError } = await supabase
+    .from("components")
+    .select("id", { count: "exact", head: true })
+    .eq("pob_id", id);
+  if (countError) throw countError;
+
+  if (count && count > 0) {
+    const { error } = await supabase.from("pobs").update({ is_active: false }).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { action: "deactivated", componentCount: count };
+  }
+
   const { error } = await supabase.from("pobs").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  return { action: "deleted" };
 }

@@ -5,6 +5,7 @@ import { createPobAction } from "@/lib/actions/pobs";
 import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
 import { PobsFilterBar } from "@/components/PobsFilterBar";
+import { errorBannerStyle, noticeBannerStyle, inactiveBadgeStyle } from "@/components/formStyles";
 
 const FILTER_KEYS = [
   "academic_year_id",
@@ -58,19 +59,8 @@ export default async function PobsPage({
 
       <PobsFilterBar options={options} current={filters} />
 
-      {params.error ? (
-        <div
-          style={{
-            background: "oklch(0.945 0.05 25)",
-            color: "oklch(0.4 0.1 25)",
-            borderRadius: 9,
-            padding: "12px 16px",
-            fontSize: 14,
-          }}
-        >
-          {params.error}
-        </div>
-      ) : null}
+      {params.error ? <div style={errorBannerStyle}>{params.error}</div> : null}
+      {params.notice ? <div style={noticeBannerStyle}>{params.notice}</div> : null}
 
       <details
         style={{
@@ -207,10 +197,11 @@ export default async function PobsPage({
                 borderTop: "1px solid var(--border-soft)",
               }}
             >
-              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65 }}>
+              <div style={{ padding: "15px 6px", fontSize: 15, lineHeight: 1.65, display: "flex", alignItems: "center", gap: 8 }}>
                 <a href={`/pobs/${p.id}`} style={{ color: "var(--text)", fontWeight: 600 }}>
                   {p.subject?.label}
                 </a>
+                {!p.is_active ? <span style={inactiveBadgeStyle}>معطَّلة</span> : null}
               </div>
               <div style={{ padding: "15px 6px", fontSize: 15, textAlign: "center", color: "var(--text-muted)" }}>
                 {p.stage?.label}

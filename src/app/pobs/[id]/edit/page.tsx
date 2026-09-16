@@ -112,7 +112,7 @@ export default async function EditPobPage({
       >
         <input type="hidden" name="pob_id" value={pob.id} />
         <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
-          حذف الحزمة ممكن فقط إذا كانت بلا مكوّنات. غير كده، عطّلها بدلاً من حذفها.
+          لو الحزمة فاضية من مكوّنات هتتحذف نهائياً، وغير كده هتتعطّل تلقائياً بدل الحذف.
         </p>
         <button type="submit" className="heading-font" style={dangerButtonStyle}>
           حذف الحزمة

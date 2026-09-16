@@ -37,10 +37,11 @@ export async function updateComponentAction(formData: FormData) {
     await updateComponent(componentId, readComponentForm(formData));
   } catch (e) {
     const message = e instanceof Error ? e.message : "تعذّر حفظ التعديل";
-    redirect(`/pobs/${pobId}?error=${encodeURIComponent(message)}`);
+    redirect(`/pobs/${pobId}/components/${componentId}/edit?error=${encodeURIComponent(message)}`);
   }
 
   revalidatePath(`/pobs/${pobId}`);
+  redirect(`/pobs/${pobId}?notice=${encodeURIComponent("تم حفظ التعديل")}`);
 }
 
 export async function deleteComponentAction(formData: FormData) {
@@ -51,8 +52,9 @@ export async function deleteComponentAction(formData: FormData) {
     await deleteComponent(componentId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "تعذّر حذف المكوّن";
-    redirect(`/pobs/${pobId}?error=${encodeURIComponent(message)}`);
+    redirect(`/pobs/${pobId}/components/${componentId}/edit?error=${encodeURIComponent(message)}`);
   }
 
   revalidatePath(`/pobs/${pobId}`);
+  redirect(`/pobs/${pobId}?notice=${encodeURIComponent("تم حذف المكوّن")}`);
 }

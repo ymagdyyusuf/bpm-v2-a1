@@ -5,7 +5,7 @@ import { listComponentCategories, listComponentKinds } from "@/lib/db/reference"
 import { createComponentAction } from "@/lib/actions/components";
 import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
-import { selectStyle, fieldLabelStyle } from "@/components/formStyles";
+import { selectStyle, fieldLabelStyle, errorBannerStyle, noticeBannerStyle, inactiveBadgeStyle } from "@/components/formStyles";
 
 function IdentityField({ label, value }: { label: string; value?: string }) {
   return (
@@ -32,10 +32,10 @@ export default async function PobDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; notice?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, notice } = await searchParams;
 
   const [pob, components, categories, kinds] = await Promise.all([
     getPob(id),
@@ -51,27 +51,19 @@ export default async function PobDetailPage({
       <AppHeader title={`${pob.subject?.label ?? ""} — ${pob.stage?.label ?? ""}`} subtitle="تفاصيل الحزمة" />
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <a href="/" style={{ fontSize: 13.5, fontWeight: 600 }}>
-          → رجوع لقائمة الحزم
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <a href="/" style={{ fontSize: 13.5, fontWeight: 600 }}>
+            → رجوع لقائمة الحزم
+          </a>
+          {!pob.is_active ? <span style={inactiveBadgeStyle}>معطَّلة</span> : null}
+        </div>
         <a href={`/pobs/${pob.id}/edit`} style={{ fontSize: 13.5, fontWeight: 600 }}>
           تعديل بيانات الحزمة أو حذفها
         </a>
       </div>
 
-      {error ? (
-        <div
-          style={{
-            background: "oklch(0.945 0.05 25)",
-            color: "oklch(0.4 0.1 25)",
-            borderRadius: 9,
-            padding: "12px 16px",
-            fontSize: 14,
-          }}
-        >
-          {error}
-        </div>
-      ) : null}
+      {error ? <div style={errorBannerStyle}>{error}</div> : null}
+      {notice ? <div style={noticeBannerStyle}>{notice}</div> : null}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 14 }}>
         <IdentityField label="السنة" value={toArabicDigits(pob.academic_year?.label)} />

@@ -73,8 +73,18 @@ export async function updateComponent(id: string, input: ComponentFormInput): Pr
   if (error) throw error;
 }
 
-export async function deleteComponent(id: string): Promise<void> {
+export type DeleteComponentResult =
+  | { action: "deleted" }
+  | { action: "deactivated" };
+
+/**
+ * D-47: نفس قاعدة الحزمة — يُحذف نهائياً لو فاضٍ من تبعيات، وغير كده يُعطَّل.
+ * لا جدول (أصول/أحداث) بيشير للمكوّن حالياً، فالحذف دايماً نهائي اليوم؛
+ * لما تُبنى الأصول لاحقاً هذا الفحص لازم يتوسّع بنفس منطق deletePob.
+ */
+export async function deleteComponent(id: string): Promise<DeleteComponentResult> {
   const supabase = await createClient();
   const { error } = await supabase.from("components").delete().eq("id", id);
   if (error) throw error;
+  return { action: "deleted" };
 }

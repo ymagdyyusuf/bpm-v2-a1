@@ -23,6 +23,25 @@ export const errorBannerStyle: CSSProperties = {
   fontSize: 14,
 };
 
+export const noticeBannerStyle: CSSProperties = {
+  background: "oklch(0.945 0.045 150)",
+  color: "oklch(0.35 0.09 150)",
+  borderRadius: 9,
+  padding: "12px 16px",
+  fontSize: 14,
+};
+
+export const inactiveBadgeStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "3px 10px",
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 600,
+  background: "oklch(0.93 0.006 260)",
+  color: "oklch(0.46 0.012 260)",
+};
+
 export const primaryButtonStyle: CSSProperties = {
   background: "var(--accent)",
   color: "#fff",

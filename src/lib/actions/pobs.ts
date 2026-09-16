@@ -35,21 +35,31 @@ export async function updatePobAction(formData: FormData) {
     await updatePob(pobId, readPobForm(formData));
   } catch (e) {
     const message = e instanceof Error ? e.message : "تعذّر حفظ التعديل";
-    redirect(`/pobs/${pobId}?error=${encodeURIComponent(message)}`);
+    redirect(`/pobs/${pobId}/edit?error=${encodeURIComponent(message)}`);
   }
 
   revalidatePath(`/pobs/${pobId}`);
+  redirect(`/pobs/${pobId}?notice=${encodeURIComponent("تم حفظ التعديل")}`);
 }
 
 export async function deletePobAction(formData: FormData) {
   const pobId = String(formData.get("pob_id") ?? "");
 
+  let result;
   try {
-    await deletePob(pobId);
+    result = await deletePob(pobId);
   } catch (e) {
     const message = e instanceof Error ? e.message : "تعذّر حذف الحزمة";
-    redirect(`/pobs/${pobId}?error=${encodeURIComponent(message)}`);
+    redirect(`/pobs/${pobId}/edit?error=${encodeURIComponent(message)}`);
   }
 
-  redirect("/");
+  if (result.action === "deactivated") {
+    redirect(
+      `/pobs/${pobId}?notice=${encodeURIComponent(
+        `الحزمة عليها ${result.componentCount} مكوّن، فتم تعطيلها بدل حذفها`
+      )}`
+    );
+  }
+
+  redirect(`/?notice=${encodeURIComponent("تم حذف الحزمة نهائياً")}`);
 }
