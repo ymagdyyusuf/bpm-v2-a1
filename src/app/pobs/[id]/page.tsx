@@ -40,15 +40,16 @@ export default async function PobDetailPage({
   const { id } = await params;
   const { error, notice } = await searchParams;
 
-  const [pob, components, categories, kinds, statuses] = await Promise.all([
+  const [pob, components, categories, kinds] = await Promise.all([
     getPob(id),
     listComponentsForPob(id),
     listComponentCategories(),
     listComponentKinds(),
-    getPobStatuses(id),
   ]);
 
   if (!pob) notFound();
+
+  const statuses = await getPobStatuses(id, components.map((c) => c.id));
 
   return (
     <div style={{ padding: "36px 48px 56px", display: "flex", flexDirection: "column", gap: 24 }}>

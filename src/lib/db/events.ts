@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import { resolveEventInput, computeStatus, type EventFormInput, type EventForStatus, type ComponentStatus } from "@/lib/events";
+import {
+  resolveEventInput,
+  computeStatus,
+  computeComponentStatus,
+  type EventFormInput,
+  type EventForStatus,
+  type ComponentStatus,
+} from "@/lib/events";
 
 const EVENT_SELECT = `
   id, pob_id, component_id, action_id, proof_number, date_expected, date_actual,
@@ -38,7 +45,7 @@ function toStatusInput(rows: EventRow[]): EventForStatus[] {
 }
 
 export type PobStatuses = {
-  /** موقف كل مكوّن — من أحداثه المباشرة فقط (D-25). */
+  /** موقف كل مكوّن — من أحداثه الخاصة + أحداث حزمته معاً (D-49). */
   components: Record<string, ComponentStatus>;
   /**
    * حالة الحزمة كلها — من كل أحداثها، سواء على مكوّن بعينه أو على
@@ -47,21 +54,30 @@ export type PobStatuses = {
   pob: ComponentStatus;
 };
 
-/** يجلب أحداث الحزمة مرة واحدة ويحسب منها موقف كل مكوّن وموقف الحزمة كلها معاً. */
-export async function getPobStatuses(pobId: string): Promise<PobStatuses> {
+/**
+ * يجلب أحداث الحزمة مرة واحدة ويحسب منها موقف كل مكوّن (من أحداثه الخاصة
+ * مدموجة مع أحداث الحزمة نفسها، D-49) وموقف الحزمة كلها معاً.
+ * componentIds لازم تشمل كل مكوّنات الحزمة — حتى اللي بلا أحداث خاصة،
+ * عشان تاخد موقف الحزمة لو عليها حدث (اختبار "حدث حزمة وحده").
+ */
+export async function getPobStatuses(pobId: string, componentIds: string[]): Promise<PobStatuses> {
   const events = await listEventsForPob(pobId);
-  const byComponent = new Map<string, EventRow[]>();
+  const pobLevelEvents = toStatusInput(events.filter((e) => !e.component_id));
 
+  const ownEventsByComponent = new Map<string, EventForStatus[]>();
   for (const e of events) {
     if (!e.component_id) continue;
-    const list = byComponent.get(e.component_id) ?? [];
-    list.push(e);
-    byComponent.set(e.component_id, list);
+    const list = ownEventsByComponent.get(e.component_id) ?? [];
+    list.push(...toStatusInput([e]));
+    ownEventsByComponent.set(e.component_id, list);
   }
 
   const components: Record<string, ComponentStatus> = {};
-  for (const [componentId, rows] of byComponent) {
-    components[componentId] = computeStatus(toStatusInput(rows));
+  for (const componentId of componentIds) {
+    components[componentId] = computeComponentStatus(
+      ownEventsByComponent.get(componentId) ?? [],
+      pobLevelEvents
+    );
   }
 
   return { components, pob: computeStatus(toStatusInput(events)) };

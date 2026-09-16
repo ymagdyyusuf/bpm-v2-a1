@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveEventInput, computeStatus, type EventFormInput, type EventForStatus } from "./events";
+import { resolveEventInput, computeStatus, computeComponentStatus, type EventFormInput, type EventForStatus } from "./events";
 
 function baseInput(overrides: Partial<EventFormInput> = {}): EventFormInput {
   return {
@@ -122,5 +122,76 @@ describe("computeStatus", () => {
     const status = computeStatus([]);
     expect(status.progress).toBe("لم يبدأ");
     expect(status.isBlocked).toBe(false);
+  });
+});
+
+describe("computeComponentStatus — D-49 (موقف المكوّن = أحداثه الخاصة + أحداث حزمته)", () => {
+  const pobEventOld: EventForStatus = {
+    action_label: "دخول",
+    date_expected: null,
+    date_actual: "2026-09-01",
+    created_at: "2026-09-01T09:00:00Z",
+    is_blocked: false,
+    block_reason: null,
+  };
+  const pobEventNew: EventForStatus = {
+    action_label: "تم الانتهاء",
+    date_expected: null,
+    date_actual: "2026-09-20",
+    created_at: "2026-09-20T09:00:00Z",
+    is_blocked: false,
+    block_reason: null,
+  };
+  const componentEventOld: EventForStatus = {
+    action_label: "بروفة",
+    date_expected: "2026-09-05",
+    date_actual: null,
+    created_at: "2026-09-05T09:00:00Z",
+    is_blocked: false,
+    block_reason: null,
+  };
+  const componentEventNew: EventForStatus = {
+    action_label: "تم الانتهاء",
+    date_expected: null,
+    date_actual: "2026-09-15",
+    created_at: "2026-09-15T09:00:00Z",
+    is_blocked: false,
+    block_reason: null,
+  };
+  const pobBlockEvent: EventForStatus = {
+    action_label: "تعديلات",
+    date_expected: null,
+    date_actual: "2026-09-25",
+    created_at: "2026-09-25T09:00:00Z",
+    is_blocked: true,
+    block_reason: "متوقف على موافقة الوزارة",
+  };
+
+  it("حدث حزمة وحده (المكوّن بلا أحداث خاصة) → كل المكوّنات تأخذه", () => {
+    const status = computeComponentStatus([], [pobEventNew]);
+    expect(status.progress).toBe("منتهية");
+  });
+
+  it("حدث مكوّن أحدث من حدث الحزمة → يغلب حدث المكوّن", () => {
+    const status = computeComponentStatus([componentEventNew], [pobEventOld]);
+    expect(status.progress).toBe("منتهية");
+    expect(status.lastAction).toBe("تم الانتهاء");
+  });
+
+  it("حدث حزمة أحدث من حدث المكوّن → يغلب حدث الحزمة", () => {
+    const status = computeComponentStatus([componentEventOld], [pobEventNew]);
+    expect(status.progress).toBe("منتهية");
+    expect(status.lastAction).toBe("تم الانتهاء");
+  });
+
+  it("حزمة بلا أحداث وبلا أحداث خاصة للمكوّن → لم يبدأ", () => {
+    const status = computeComponentStatus([], []);
+    expect(status.progress).toBe("لم يبدأ");
+  });
+
+  it("تعطيل على الحزمة أحدث من آخر حدث مكوّن → المكوّن يظهر معطَّلاً بنفس السبب", () => {
+    const status = computeComponentStatus([componentEventNew], [pobBlockEvent]);
+    expect(status.isBlocked).toBe(true);
+    expect(status.blockReason).toBe("متوقف على موافقة الوزارة");
   });
 });

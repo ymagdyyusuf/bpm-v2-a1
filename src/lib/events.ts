@@ -78,7 +78,10 @@ function sortKey(e: EventForStatus): [string, string] {
   return [e.date_actual ?? e.date_expected ?? "", e.created_at];
 }
 
-/** الموقف الحالي لأي مكوّن = آخر حدث عليه (محسوب، لا مخزَّن). */
+/**
+ * موقف الحزمة = أحدث حدث في نطاقها أو نطاق أي من مكوّناتها (D-49) —
+ * مرّر كل أحداث الحزمة (على الحزمة وعلى مكوّناتها معاً) لنفس الدالة.
+ */
 export function computeStatus(events: EventForStatus[]): ComponentStatus {
   if (events.length === 0) {
     return { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null };
@@ -97,4 +100,17 @@ export function computeStatus(events: EventForStatus[]): ComponentStatus {
     blockReason: latest.is_blocked ? latest.block_reason : null,
     lastAction: latest.action_label,
   };
+}
+
+/**
+ * D-49: موقف المكوّن = أحدث حدث من (أحداثه الخاصة + أحداث حزمته) بترتيب D-25.
+ * حدث أحدث يغلب تلقائياً — الترتيب الزمني وحده يحسم، بلا استثناء مكتوب
+ * (نفس القاعدة تحكم التعطيل: لو أحدث حدث حزمة معطِّل، المكوّن يظهر معطَّلاً).
+ * دالة واحدة تستعملها كل الشاشات والتقارير (D-18 · D-20).
+ */
+export function computeComponentStatus(
+  ownEvents: EventForStatus[],
+  pobLevelEvents: EventForStatus[]
+): ComponentStatus {
+  return computeStatus([...ownEvents, ...pobLevelEvents]);
 }
