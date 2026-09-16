@@ -1,5 +1,7 @@
+import { normalizeDigitsForParsing } from "./numerals";
+
 export function parsePobPrice(raw: string): number | null {
-  const trimmed = raw.trim();
+  const trimmed = normalizeDigitsForParsing(raw.trim());
   if (!trimmed) return null;
 
   const value = Number(trimmed);

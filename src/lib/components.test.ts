@@ -6,6 +6,10 @@ describe("parseOptionalNonNegativeInt", () => {
     expect(parseOptionalNonNegativeInt("176")).toBe(176);
   });
 
+  it("رقم بأرقام عربية (٠-٩) يُقبل ويتحول صحيحاً — الواجهة كلها تعرض عربي", () => {
+    expect(parseOptionalNonNegativeInt("١٧٦")).toBe(176);
+  });
+
   it("حالة الحد: صفر مقبول، وسالب وكسور تُرفض", () => {
     expect(parseOptionalNonNegativeInt("0")).toBe(0);
     expect(() => parseOptionalNonNegativeInt("-1")).toThrow();

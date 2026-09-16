@@ -26,8 +26,15 @@ function IdentityField({ label, value }: { label: string; value?: string }) {
   );
 }
 
-export default async function PobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PobDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { id } = await params;
+  const { error } = await searchParams;
 
   const [pob, components, categories, kinds] = await Promise.all([
     getPob(id),
@@ -45,6 +52,20 @@ export default async function PobDetailPage({ params }: { params: Promise<{ id: 
       <a href="/" style={{ fontSize: 13.5, fontWeight: 600 }}>
         → رجوع لقائمة الحزم
       </a>
+
+      {error ? (
+        <div
+          style={{
+            background: "oklch(0.945 0.05 25)",
+            color: "oklch(0.4 0.1 25)",
+            borderRadius: 9,
+            padding: "12px 16px",
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 14 }}>
         <IdentityField label="السنة" value={toArabicDigits(pob.academic_year?.label)} />

@@ -6,6 +6,10 @@ describe("parsePobPrice", () => {
     expect(parsePobPrice("199.50")).toBe(199.5);
   });
 
+  it("سعر بأرقام عربية وفاصلة عشرية عربية يُقبل — الواجهة كلها تعرض عربي", () => {
+    expect(parsePobPrice("١٩٩٫٥٠")).toBe(199.5);
+  });
+
   it("حالة الحد: صفر مقبول، وسالب يُرفض", () => {
     expect(parsePobPrice("0")).toBe(0);
     expect(() => parsePobPrice("-1")).toThrow("السعر يجب أن يكون رقماً موجباً أو فارغاً");

@@ -2,12 +2,31 @@ import { listPublishers } from "@/lib/db/publishers";
 import { addPublisherAction } from "@/lib/actions/publishers";
 import { AppHeader } from "@/components/AppHeader";
 
-export default async function PublishersPage() {
+export default async function PublishersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const publishers = await listPublishers();
 
   return (
     <div style={{ padding: "40px 48px 56px", display: "flex", flexDirection: "column", gap: 22 }}>
       <AppHeader title="الناشرون" subtitle="قائمة الناشرين المرجعية" />
+
+      {error ? (
+        <div
+          style={{
+            background: "oklch(0.945 0.05 25)",
+            color: "oklch(0.4 0.1 25)",
+            borderRadius: 9,
+            padding: "12px 16px",
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
 
       <form
         action={addPublisherAction}

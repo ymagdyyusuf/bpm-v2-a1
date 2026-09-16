@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { parseOptionalNonNegativeInt } from "@/lib/components";
+import { parseOptionalNonNegativeInt, parseOptionalNonNegativeDecimal } from "@/lib/components";
 
 export type Component = {
   id: string;
@@ -56,8 +56,8 @@ export async function createComponent(input: CreateComponentInput): Promise<void
     category_id: input.category_id,
     kind_id: input.kind_id,
     name: input.name.trim() || null,
-    page_width_cm: input.page_width_cm.trim() ? Number(input.page_width_cm) : null,
-    page_height_cm: input.page_height_cm.trim() ? Number(input.page_height_cm) : null,
+    page_width_cm: parseOptionalNonNegativeDecimal(input.page_width_cm),
+    page_height_cm: parseOptionalNonNegativeDecimal(input.page_height_cm),
     page_count: parseOptionalNonNegativeInt(input.page_count),
     sheet_count: parseOptionalNonNegativeInt(input.sheet_count),
     color_count: parseOptionalNonNegativeInt(input.color_count),
