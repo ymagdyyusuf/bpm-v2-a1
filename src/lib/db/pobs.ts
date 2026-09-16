@@ -4,6 +4,13 @@ import { parsePobPrice } from "@/lib/pobs";
 export type Pob = {
   id: string;
   price: number | null;
+  academic_year_id: string;
+  term_id: string;
+  publisher_id: string;
+  stage_id: string;
+  type_id: string;
+  language_id: string;
+  subject_id: string;
   academic_year: { label: string } | null;
   term: { label: string } | null;
   publisher: { label: string } | null;
@@ -25,6 +32,7 @@ export type PobFilters = {
 
 const POB_SELECT = `
   id, price,
+  academic_year_id, term_id, publisher_id, stage_id, type_id, language_id, subject_id,
   academic_year:academic_years(label),
   term:terms(label),
   publisher:publishers(label),
@@ -54,7 +62,7 @@ export async function listPobs(filters: PobFilters): Promise<Pob[]> {
   return (data ?? []) as unknown as Pob[];
 }
 
-export type CreatePobInput = {
+export type PobFormInput = {
   academic_year_id: string;
   term_id: string;
   publisher_id: string;
@@ -67,11 +75,8 @@ export type CreatePobInput = {
 
 export const DUPLICATE_POB_ERROR = "حزمة بنفس السنة والترم والناشر والمرحلة والنوع واللغة والمادة موجودة بالفعل";
 
-export async function createPob(input: CreatePobInput): Promise<void> {
-  const price = parsePobPrice(input.price);
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("pobs").insert({
+function toPobRow(input: PobFormInput) {
+  return {
     academic_year_id: input.academic_year_id,
     term_id: input.term_id,
     publisher_id: input.publisher_id,
@@ -79,13 +84,32 @@ export async function createPob(input: CreatePobInput): Promise<void> {
     type_id: input.type_id,
     language_id: input.language_id,
     subject_id: input.subject_id,
-    price,
-  });
+    price: parsePobPrice(input.price),
+  };
+}
+
+export async function createPob(input: PobFormInput): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("pobs").insert(toPobRow(input));
 
   if (error) {
-    if (error.code === "23505") {
-      throw new Error(DUPLICATE_POB_ERROR);
-    }
+    if (error.code === "23505") throw new Error(DUPLICATE_POB_ERROR);
     throw error;
   }
+}
+
+export async function updatePob(id: string, input: PobFormInput): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("pobs").update(toPobRow(input)).eq("id", id);
+
+  if (error) {
+    if (error.code === "23505") throw new Error(DUPLICATE_POB_ERROR);
+    throw error;
+  }
+}
+
+export async function deletePob(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("pobs").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }

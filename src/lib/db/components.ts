@@ -7,15 +7,17 @@ export type Component = {
   page_width_cm: number | null;
   page_height_cm: number | null;
   page_count: number | null;
-  sheet_count: number | null;
-  color_count: number | null;
+  colors: string | null;
   display_order: number;
+  category_id: string;
+  kind_id: string;
   category: { label: string; display_order: number } | null;
   kind: { label: string } | null;
 };
 
 const COMPONENT_SELECT = `
-  id, name, page_width_cm, page_height_cm, page_count, sheet_count, color_count, display_order,
+  id, name, page_width_cm, page_height_cm, page_count, colors, display_order,
+  category_id, kind_id,
   category:component_categories(label, display_order),
   kind:component_kinds(label)
 `;
@@ -37,38 +39,42 @@ export async function listComponentsForPob(pobId: string): Promise<Component[]> 
   });
 }
 
-export type CreateComponentInput = {
-  pob_id: string;
+export type ComponentFormInput = {
   category_id: string;
   kind_id: string;
   name: string;
   page_width_cm: string;
   page_height_cm: string;
   page_count: string;
-  sheet_count: string;
-  color_count: string;
+  colors: string;
 };
 
-export async function createComponent(input: CreateComponentInput): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase.from("components").insert({
-    pob_id: input.pob_id,
+function toComponentRow(input: ComponentFormInput) {
+  return {
     category_id: input.category_id,
     kind_id: input.kind_id,
     name: input.name.trim() || null,
-    page_width_cm: parseOptionalNonNegativeDecimal(input.page_width_cm),
-    page_height_cm: parseOptionalNonNegativeDecimal(input.page_height_cm),
-    page_count: parseOptionalNonNegativeInt(input.page_count),
-    sheet_count: parseOptionalNonNegativeInt(input.sheet_count),
-    color_count: parseOptionalNonNegativeInt(input.color_count),
-  });
+    page_width_cm: parseOptionalNonNegativeDecimal(input.page_width_cm, "العرض"),
+    page_height_cm: parseOptionalNonNegativeDecimal(input.page_height_cm, "الطول"),
+    page_count: parseOptionalNonNegativeInt(input.page_count, "الصفحات"),
+    colors: input.colors.trim() || null,
+  };
+}
 
+export async function createComponent(pobId: string, input: ComponentFormInput): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("components").insert({ pob_id: pobId, ...toComponentRow(input) });
   if (error) throw error;
 }
 
-export async function updateComponentPageCount(id: string, pageCount: string): Promise<void> {
-  const value = parseOptionalNonNegativeInt(pageCount);
+export async function updateComponent(id: string, input: ComponentFormInput): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase.from("components").update({ page_count: value }).eq("id", id);
+  const { error } = await supabase.from("components").update(toComponentRow(input)).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteComponent(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("components").delete().eq("id", id);
   if (error) throw error;
 }
