@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --bg: oklch(0.98 0.006 80);
+      --surface: oklch(0.995 0.004 80);
+      --border: oklch(0.87 0.013 80);
+      --border-soft: oklch(0.925 0.009 80);
+      --text: oklch(0.26 0.02 260);
+      --text-muted: oklch(0.52 0.02 260);
+      --text-faint: oklch(0.55 0.015 260);
+      --accent: oklch(0.42 0.09 235);
+      --accent-strong: oklch(0.35 0.09 235);
+      --cat-book-bg: oklch(0.94 0.025 235);
+      --cat-book-text: oklch(0.4 0.08 235);
+      --cat-attach-bg: oklch(0.95 0.01 80);
+      --cat-attach-text: oklch(0.45 0.018 80);
+      --cat-gift-bg: oklch(0.945 0.045 25);
+      --cat-gift-text: oklch(0.46 0.1 25);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif; color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-strong); }
+    .heading-font { font-family: 'Cairo', 'IBM Plex Sans Arabic', system-ui, sans-serif; }
+
+    .id-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .id-box { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid var(--border); border-radius:9px; padding:11px 13px; background:var(--surface); }
+    .id-value { font-size: 14.5px; font-weight: 600; }
+    .pencil { color: var(--text-faint); flex-shrink:0; }
+
+    .row-grid { display:grid; grid-template-columns: 104px 112px minmax(300px,2.3fr) 132px 88px 88px 96px 88px; padding: 0 20px; }
+    .th { padding:16px 6px; font-size:13px; font-weight:700; color:var(--text-muted); font-family:'Cairo','IBM Plex Sans Arabic',sans-serif; }
+    .th-c { text-align:center; }
+    .data-row { border-top:1px solid var(--border-soft); }
+    .data-row:hover { background: oklch(0.975 0.007 80); }
+    .td { padding:15px 6px; font-size:15px; line-height:1.65; }
+    .td-c { padding:15px 6px; font-size:15px; line-height:1.5; text-align:center; color:var(--text-muted); font-variant-numeric: tabular-nums; }
+    .td-num { padding:15px 6px; font-size:15px; text-align:center; font-weight:600; font-variant-numeric: tabular-nums; }
+
+    .tag { display:inline-flex; align-items:center; padding:5px 13px; border-radius:999px; font-size:12.5px; font-weight:600; }
+    .tag.cat-book { background: var(--cat-book-bg); color: var(--cat-book-text); }
+    .tag.cat-attach { background: var(--cat-attach-bg); color: var(--cat-attach-text); }
+    .tag.cat-gift { background: var(--cat-gift-bg); color: var(--cat-gift-text); }
+  </style>
+</helmet>
+<div dir="rtl" lang="ar" style="width:100%; min-height:880px; padding: 36px 48px 56px; display:flex; flex-direction:column; gap:24px;">
+
+  <div style="display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--text-muted); font-weight:600;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    <a href="#" style="color:var(--text-muted);">رجوع لقائمة الحزم</a>
+  </div>
+
+  <h1 class="heading-font" style="margin:0; font-size:24px; font-weight:800;">العلوم — ٣ إعدادي</h1>
+
+  <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:14px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">السنة</label>
+      <div class="id-box"><span class="id-value">٢٠٢٧</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">الترم</label>
+      <div class="id-box"><span class="id-value">الأول</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">الناشر</label>
+      <div class="id-box"><span class="id-value">الامتحان</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">المرحلة</label>
+      <div class="id-box"><span class="id-value">٣ إعدادي</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">النوع</label>
+      <div class="id-box"><span class="id-value">عام</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">اللغة</label>
+      <div class="id-box"><span class="id-value">عربي</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <label class="id-label">المادة</label>
+      <div class="id-box"><span class="id-value">العلوم</span><svg class="pencil" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+    <div style="display:flex; align-items:baseline; gap:10px;">
+      <h2 class="heading-font" style="margin:0; font-size:17px; font-weight:700;">مكوّنات الحزمة</h2>
+      <span style="font-size:13px; color:var(--text-muted);">{{count}} مكوّنات</span>
+    </div>
+    <div style="background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; overflow:hidden;">
+      <div class="row-grid">
+        <div class="th">الفئة</div>
+        <div class="th">النوع</div>
+        <div class="th">الاسم</div>
+        <div class="th th-c">مقاس الصفحة</div>
+        <div class="th th-c">الصفحات</div>
+        <div class="th th-c">الأوراق</div>
+        <div class="th th-c">الملازم</div>
+        <div class="th th-c">الألوان</div>
+      </div>
+      <sc-for list="{{items}}" as="item" hint-placeholder-count="6">
+        <div class="row-grid data-row">
+          <div style="padding:12px 6px; display:flex; align-items:center;"><span class="tag {{item.catClass}}">{{item.category}}</span></div>
+          <div class="td-c">{{item.kind}}</div>
+          <div class="td">{{item.name}}</div>
+          <div class="td-c">{{item.size}}</div>
+          <div class="td-num">{{item.pages}}</div>
+          <div class="td-num">{{item.sheets}}</div>
+          <div class="td-num">{{item.forms}}</div>
+          <div class="td-num">{{item.colors}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    var items = [
+      { category: 'كتاب', catClass: 'cat-book', kind: 'شرح', name: 'كتاب الشرح الجزء الأول', size: '٢٨٫١ × ١٩٫٨', pages: '١٧٦', sheets: '٨٨', forms: '٤', colors: '٤' },
+      { category: 'كتاب', catClass: 'cat-book', kind: 'أسئلة', name: 'كتاب الاسئلة والمسائل بنظام Open Book', size: '٢٨٫١ × ١٩٫٨', pages: '٩٦', sheets: '٤٨', forms: '٣', colors: '٢' },
+      { category: 'ملحق', catClass: 'cat-attach', kind: 'مراجعة', name: 'كتاب المراجعة ونماذج الامتحانات والاجابات', size: '٢٤٫٧٥ × ١٧', pages: '٦٤', sheets: '٣٢', forms: '٢', colors: '١' },
+      { category: 'ملحق', catClass: 'cat-attach', kind: 'تقييمات', name: 'التقييمات الأسبوعية والاختبارات الشهرية والإجابات', size: '٢٤٫٧٥ × ١٧', pages: '٤٨', sheets: '٢٤', forms: '٢', colors: '١' },
+      { category: 'ملحق', catClass: 'cat-attach', kind: 'مفكرة', name: 'مفكرة الامتحان', size: '٢٠ × ١٤', pages: '٣٢', sheets: '١٦', forms: '١', colors: '١' },
+      { category: 'هدية', catClass: 'cat-gift', kind: 'بوستر', name: 'بوستر خريطة العالم (طبيعية - سياسية)', size: '—', pages: '—', sheets: '—', forms: '½ فرخ', colors: '٤' }
+    ];
+    return { items: items, count: '٦' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --bg: oklch(0.98 0.006 80);
+      --surface: oklch(0.995 0.004 80);
+      --border: oklch(0.87 0.013 80);
+      --border-soft: oklch(0.925 0.009 80);
+      --text: oklch(0.26 0.02 260);
+      --text-muted: oklch(0.52 0.02 260);
+      --text-faint: oklch(0.55 0.015 260);
+      --accent: oklch(0.42 0.09 235);
+      --accent-strong: oklch(0.35 0.09 235);
+      --st-none-bg: oklch(0.93 0.006 260);
+      --st-none-text: oklch(0.46 0.012 260);
+      --st-none-dot: oklch(0.62 0.012 260);
+      --st-progress-bg: oklch(0.945 0.05 78);
+      --st-progress-text: oklch(0.44 0.095 68);
+      --st-progress-dot: oklch(0.68 0.13 70);
+      --st-done-bg: oklch(0.935 0.045 150);
+      --st-done-text: oklch(0.4 0.09 150);
+      --st-done-dot: oklch(0.58 0.12 150);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif; color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-strong); }
+    .heading-font { font-family: 'Cairo', 'IBM Plex Sans Arabic', system-ui, sans-serif; }
+    .live-dot { animation: pulse 2.2s ease-in-out infinite alternate; }
+    @keyframes pulse { from { opacity: .35; } to { opacity: 1; } }
+
+    .chip-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .chip-box { display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:9px; padding:10px 12px; background:var(--surface); font-size:14px; color:var(--text-faint); }
+
+    .row-grid { display:grid; grid-template-columns: minmax(230px,1.8fr) 118px 118px 96px 108px 88px 82px 128px 118px; padding: 0 20px; }
+    .th { padding:16px 6px; font-size:13px; font-weight:700; color:var(--text-muted); font-family:'Cairo','IBM Plex Sans Arabic',sans-serif; }
+    .th-c { text-align:center; }
+    .th-l { text-align:left; }
+    .data-row { border-top:1px solid var(--border-soft); }
+    .data-row:hover { background: oklch(0.975 0.007 80); }
+    .td { padding:15px 6px; font-size:15px; line-height:1.65; }
+    .td-c { padding:15px 6px; font-size:15px; line-height:1.5; text-align:center; color:var(--text-muted); font-variant-numeric: tabular-nums; }
+    .td-price { padding:15px 6px; font-size:15px; text-align:left; font-weight:700; font-variant-numeric: tabular-nums; }
+
+    .badge { display:inline-flex; align-items:center; gap:6px; padding:5px 13px; border-radius:999px; font-size:12.5px; font-weight:600; }
+    .badge.st-none { background: var(--st-none-bg); color: var(--st-none-text); }
+    .badge.st-progress { background: var(--st-progress-bg); color: var(--st-progress-text); }
+    .badge.st-done { background: var(--st-done-bg); color: var(--st-done-text); }
+    .dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+    .dot.st-none { background: var(--st-none-dot); }
+    .dot.st-progress { background: var(--st-progress-dot); }
+    .dot.st-done { background: var(--st-done-dot); }
+  </style>
+</helmet>
+<div dir="rtl" lang="ar" style="width:100%; min-height:960px; padding: 40px 48px 56px; display:flex; flex-direction:column; gap:22px;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <h1 class="heading-font" style="margin:0; font-size:26px; font-weight:800;">حزم الكتب</h1>
+      <div style="font-size:14px; color:var(--text-muted);">الوصول إلى حزمة والتعامل معها</div>
+    </div>
+    <button style="display:flex; align-items:center; gap:8px; background:var(--accent); color:#fff; border:none; border-radius:10px; padding:13px 22px; font-family:'Cairo',sans-serif; font-weight:700; font-size:15px; cursor:pointer;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      حزمة جديدة
+    </button>
+  </div>
+
+  <div style="background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:18px 20px; display:flex; flex-direction:column; gap:14px;">
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">السنة</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">الترم</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">الناشر</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">المرحلة</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">النوع</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:120px;">
+        <label class="chip-label">اللغة</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:150px;">
+        <label class="chip-label">المادة</label>
+        <div class="chip-box"><span>الكل</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border-soft); padding-top:12px;">
+      <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);">
+        <span class="dot st-progress live-dot"></span>
+        الفلترة تعمل تلقائياً — {{count}} نتيجة
+      </div>
+      <a href="#" style="font-size:13px; font-weight:600;">مسح الفلاتر</a>
+    </div>
+  </div>
+
+  <div style="background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; overflow:hidden;">
+    <div class="row-grid">
+      <div class="th">المادة</div>
+      <div class="th th-c">المرحلة</div>
+      <div class="th th-c">الناشر</div>
+      <div class="th th-c">النوع</div>
+      <div class="th th-c">اللغة</div>
+      <div class="th th-c">الترم</div>
+      <div class="th th-c">السنة</div>
+      <div class="th th-c">الحالة</div>
+      <div class="th th-l">السعر</div>
+    </div>
+    <sc-for list="{{rows}}" as="item" hint-placeholder-count="6">
+      <div class="row-grid data-row">
+        <div class="td">{{item.subject}}</div>
+        <div class="td-c">{{item.stage}}</div>
+        <div class="td-c">{{item.publisher}}</div>
+        <div class="td-c">{{item.type}}</div>
+        <div class="td-c">{{item.lang}}</div>
+        <div class="td-c">{{item.term}}</div>
+        <div class="td-c">{{item.yearFmt}}</div>
+        <div style="padding:12px 6px; display:flex; align-items:center; justify-content:center;">
+          <span class="badge {{item.statusClass}}"><span class="dot {{item.statusClass}}"></span>{{item.statusLabel}}</span>
+        </div>
+        <div class="td-price">{{item.priceFmt}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"numerals":{"editor":"enum","options":["western","arabic"],"default":"western","section":"عرض"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var mode = this.props.numerals || 'western';
+    var arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    var toDigits = function (input) {
+      var s = String(input);
+      if (mode === 'arabic') {
+        s = s.replace(/[0-9]/g, function (d) { return arabicDigits[Number(d)]; });
+      }
+      return s;
+    };
+    var toPrice = function (val) {
+      if (val == null) return '—';
+      var s = val.toFixed(2);
+      if (mode === 'arabic') {
+        s = s.replace('.', '٫').replace(/[0-9]/g, function (d) { return arabicDigits[Number(d)]; });
+      }
+      return s;
+    };
+
+    var statusMeta = {
+      not_started: { label: 'لم يبدأ', cls: 'st-none' },
+      in_progress: { label: 'جارٍ', cls: 'st-progress' },
+      done: { label: 'منتهية', cls: 'st-done' }
+    };
+
+    var raw = [
+      { subject: 'العلوم', stage: '٣ إعدادي', publisher: 'الامتحان', type: 'عام', lang: 'عربي', term: 'الأول', year: 2027, status: 'in_progress', price: 199 },
+      { subject: 'الدراسات الاجتماعية', stage: '٤ ابتدائي', publisher: 'الامتحان', type: 'عام', lang: 'عربي', term: 'الأول', year: 2027, status: 'in_progress', price: 185 },
+      { subject: 'Chemistry', stage: '٣ ثانوي', publisher: 'معاصر', type: 'لغات', lang: 'إنجليزي', term: 'الأول', year: 2027, status: 'not_started', price: null },
+      { subject: 'الكمبيوتر وتكنولوجيا المعلومات', stage: '١ إعدادي', publisher: 'وزارة', type: 'تجريبي', lang: 'عربي', term: 'الثاني', year: 2026, status: 'done', price: 199 },
+      { subject: 'Mathématiques', stage: '٢ ثانوي', publisher: 'معاصر', type: 'لغات', lang: 'فرنساوي', term: 'الأول', year: 2027, status: 'in_progress', price: 210 },
+      { subject: 'اللغة العربية', stage: '٣ ثانوي', publisher: 'الامتحان', type: 'عام', lang: 'عربي', term: 'الأول', year: 2027, status: 'in_progress', price: 199 }
+    ];
+
+    var rows = raw.map(function (r) {
+      return {
+        subject: r.subject,
+        stage: r.stage,
+        publisher: r.publisher,
+        type: r.type,
+        lang: r.lang,
+        term: r.term,
+        yearFmt: toDigits(r.year),
+        statusLabel: statusMeta[r.status].label,
+        statusClass: statusMeta[r.status].cls,
+        priceFmt: toPrice(r.price)
+      };
+    });
+
+    return {
+      rows: rows,
+      count: toDigits(rows.length)
+    };
+  }
+}
+</script>
+</body>
+</html>
