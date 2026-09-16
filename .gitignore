@@ -6,6 +6,9 @@
 # Dependencies
 node_modules/
 
+# Supabase CLI local link cache (project ref, pooler URL — not secrets, but local-only)
+supabase/.temp/
+
 # Next.js build output
 .next/
 out/
