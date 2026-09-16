@@ -50,3 +50,36 @@ input {
   font-family: inherit;
   font-size: 15px;
 }
+
+/* شريحة ٦: طباعة التقارير — A4 أفقي، رأس متكرر، ترقيم صفحات */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+    @bottom-center {
+      content: "صفحة " counter(page) " من " counter(pages);
+      font-family: "IBM Plex Sans Arabic", sans-serif;
+      font-size: 10px;
+    }
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .report-group {
+    break-inside: avoid;
+  }
+
+  .report-table thead {
+    display: table-header-group;
+  }
+
+  .report-table tr {
+    break-inside: avoid;
+  }
+}

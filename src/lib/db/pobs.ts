@@ -15,10 +15,10 @@ export type Pob = {
   academic_year: { label: string } | null;
   term: { label: string } | null;
   publisher: { label: string } | null;
-  stage: { label: string } | null;
+  stage: { label: string; display_order: number } | null;
   type: { label: string } | null;
   language: { label: string } | null;
-  subject: { label: string } | null;
+  subject: { label: string; display_order: number } | null;
 };
 
 export type PobFilters = {
@@ -37,10 +37,10 @@ const POB_SELECT = `
   academic_year:academic_years(label),
   term:terms(label),
   publisher:publishers(label),
-  stage:stages(label),
+  stage:stages(label, display_order),
   type:types(label),
   language:languages(label),
-  subject:subjects(label)
+  subject:subjects(label, display_order)
 `;
 
 export async function getPob(id: string): Promise<Pob | null> {

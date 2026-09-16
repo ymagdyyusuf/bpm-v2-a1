@@ -76,6 +76,9 @@ export type ComponentStatus = {
   blockReason: string | null;
   lastAction: string | null;
   lastProofNumber: number | null;
+  /** تاريخ آخر حدث — لتقارير الموقف والمتبقي، بلا إعادة حساب (D-18 · D-20). */
+  lastDateExpected: string | null;
+  lastDateActual: string | null;
 };
 
 /** D-25: آخر حدث = الأحدث بـCOALESCE(date_actual, date_expected) ثم created_at. */
@@ -89,7 +92,15 @@ function sortKey(e: EventForStatus): [string, string] {
  */
 export function computeStatus(events: EventForStatus[]): ComponentStatus {
   if (events.length === 0) {
-    return { progress: "لم يبدأ", isBlocked: false, blockReason: null, lastAction: null, lastProofNumber: null };
+    return {
+      progress: "لم يبدأ",
+      isBlocked: false,
+      blockReason: null,
+      lastAction: null,
+      lastProofNumber: null,
+      lastDateExpected: null,
+      lastDateActual: null,
+    };
   }
 
   const latest = [...events].sort((a, b) => {
@@ -105,6 +116,8 @@ export function computeStatus(events: EventForStatus[]): ComponentStatus {
     blockReason: latest.is_blocked ? latest.block_reason : null,
     lastAction: latest.action_label,
     lastProofNumber: latest.proof_number,
+    lastDateExpected: latest.date_expected,
+    lastDateActual: latest.date_actual,
   };
 }
 

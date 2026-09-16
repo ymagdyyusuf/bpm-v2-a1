@@ -211,6 +211,8 @@ export default async function PobDetailPage({
                 blockReason: null,
                 lastAction: null,
                 lastProofNumber: null,
+                lastDateExpected: null,
+                lastDateActual: null,
               };
               return (
                 <div
