@@ -46,7 +46,7 @@
 |---|---|
 | الموقع الحي | `<املأ بعد أول نشر>` |
 | المستودع | https://github.com/ymagdyyusuf/bpm-v2-a1 |
-| قاعدة البيانات | `<املأ>` |
+| قاعدة البيانات | https://toqohcmzjkiobirhwadr.supabase.co |
 | لوحة النشر | `<املأ>` |
 | لوحة التصميم | `<املأ — رابط Claude Design>` |
 
