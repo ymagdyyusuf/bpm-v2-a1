@@ -155,25 +155,33 @@ export default async function EditComponentPage({
         >
           <input type="hidden" name="pob_id" value={pob.id} />
           <input type="hidden" name="component_id" value={component.id} />
-          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 480 }}>
+            <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+              {willDeactivate ? (
+                <>
+                  على المكوّن {toArabicDigits(eventCount)} حدث — الزر هيعطّله بدل ما يمسحه، ويرجع بـ&quot;إعادة
+                  تفعيل&quot; وقت ما تحب.
+                </>
+              ) : (
+                <>المكوّن بلا أحداث — الحذف نهائي ولا رجعة فيه.</>
+              )}
+            </p>
             {willDeactivate ? (
-              <>
-                على المكوّن {toArabicDigits(eventCount)} حدث — الحذف هيعطّله بدل ما يمسحه، ويرجع بـ&quot;إعادة
-                تفعيل&quot; وقت ما تحب.
-              </>
-            ) : (
-              <>المكوّن بلا أحداث — الحذف نهائي ولا رجعة فيه.</>
-            )}
-          </p>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-faint)" }}>
+                الأحداث سجل دائم ما بيتمسحش نهائياً حتى لو غلط — عشان كده أي مكوّن عليه حدث واحد ما يتحذفش نهائياً
+                أبداً، يتعطّل بس. لتنظيف بيانات تجربة بالكامل، المطلوب مسح مباشر على قاعدة البيانات من مديرها.
+              </p>
+            ) : null}
+          </div>
           <ConfirmSubmitButton
             confirmText={
               willDeactivate
                 ? `على المكوّن ${toArabicDigits(eventCount)} حدث. هيتعطّل بدل ما يتمسح، وممكن ترجّعه بعدين. متأكد؟`
                 : "المكوّن بلا أحداث وهيتمسح نهائياً — الخطوة دي لا رجعة فيها. متأكد؟"
             }
-            style={dangerButtonStyle}
+            style={willDeactivate ? neutralButtonStyle : dangerButtonStyle}
           >
-            حذف المكوّن
+            {willDeactivate ? "تعطيل المكوّن" : "حذف المكوّن نهائياً"}
           </ConfirmSubmitButton>
         </form>
       ) : (

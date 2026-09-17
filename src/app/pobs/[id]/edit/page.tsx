@@ -127,22 +127,30 @@ export default async function EditPobPage({
           }}
         >
           <input type="hidden" name="pob_id" value={pob.id} />
-          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
-            {willDeactivate ? (
-              <>على الحزمة {dependentParts.join(" و")} — الحذف هيعطّلها بدل ما يمسحها، وترجع بـ&quot;إعادة تفعيل&quot; وقت ما تحب.</>
-            ) : (
-              <>الحزمة فاضية تماماً — الحذف نهائي ولا رجعة فيه.</>
-            )}
-          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 480 }}>
+            <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+              {willDeactivate ? (
+                <>على الحزمة {dependentParts.join(" و")} — الزر هيعطّلها بدل ما يمسحها، وترجع بـ&quot;إعادة تفعيل&quot; وقت ما تحب.</>
+              ) : (
+                <>الحزمة فاضية تماماً — الحذف نهائي ولا رجعة فيه.</>
+              )}
+            </p>
+            {dependents.eventCount > 0 ? (
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-faint)" }}>
+                الأحداث سجل دائم ما بيتمسحش نهائياً حتى لو غلط — عشان كده أي حزمة عليها حدث واحد ما تتحذفش نهائياً
+                أبداً، تتعطّل بس. لتنظيف بيانات تجربة بالكامل، المطلوب مسح مباشر على قاعدة البيانات من مديرها.
+              </p>
+            ) : null}
+          </div>
           <ConfirmSubmitButton
             confirmText={
               willDeactivate
                 ? `على الحزمة ${dependentParts.join(" و")}. هتتعطّل بدل ما تتمسح، وممكن ترجّعها بعدين. متأكد؟`
                 : "الحزمة فاضية تماماً وهتتمسح نهائياً — الخطوة دي لا رجعة فيها. متأكد؟"
             }
-            style={dangerButtonStyle}
+            style={willDeactivate ? neutralButtonStyle : dangerButtonStyle}
           >
-            حذف الحزمة
+            {willDeactivate ? "تعطيل الحزمة" : "حذف الحزمة نهائياً"}
           </ConfirmSubmitButton>
         </form>
       ) : (
