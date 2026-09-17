@@ -13,8 +13,7 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle: string
         <nav style={{ display: "flex", gap: 14, fontSize: 14, fontWeight: 600 }}>
           <a href="/">الحزم</a>
           <a href="/publishers">الناشرون</a>
-          <a href="/reports/detailed-status">الموقف التفصيلي</a>
-          <a href="/reports/remaining">الكتب المتبقية</a>
+          <a href="/reports">استخراج التقارير</a>
         </nav>
         <form action={signOutAction}>
           <button

@@ -82,4 +82,10 @@ input {
   .report-table tr {
     break-inside: avoid;
   }
+
+  .report-table td,
+  .report-table th {
+    padding: 4px 5px !important;
+    font-size: 10.5px !important;
+  }
 }

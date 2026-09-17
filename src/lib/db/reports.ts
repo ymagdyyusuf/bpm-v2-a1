@@ -9,8 +9,9 @@ export type ReportFilters = PobFilters & {
   action_id?: string;
   date_from?: string;
   date_to?: string;
-  progress?: "لم يبدأ" | "جارٍ" | "منتهية";
+  progress?: Array<"لم يبدأ" | "جارٍ" | "منتهية">;
   blocked_only?: boolean;
+  overdue_only?: boolean;
   include_inactive?: boolean;
 };
 
@@ -66,6 +67,17 @@ function toStatusInput(rows: EventRow[]): EventForStatus[] {
   }));
 }
 
+/** أحدث حدث معرَّفاً (action_id) من مجموعة أحداث — لفلتر "الإجراء" (معيار الكود #٤). */
+function latestActionIdOf(rows: EventRow[]): string | null {
+  if (rows.length === 0) return null;
+  return [...rows].sort((a, b) => {
+    const ak = a.date_actual ?? a.date_expected ?? "";
+    const bk = b.date_actual ?? b.date_expected ?? "";
+    if (ak !== bk) return ak < bk ? 1 : -1;
+    return a.created_at < b.created_at ? 1 : -1;
+  })[0].action_id;
+}
+
 async function fetchPobsAndEvents(filters: ReportFilters) {
   const pobFilters: PobFilters = {
     academic_year_id: filters.academic_year_id,
@@ -118,10 +130,11 @@ async function fetchPobsAndEvents(filters: ReportFilters) {
   return { pobs, componentsByPob, eventsByPob };
 }
 
-function passesEventFilters(status: ComponentStatus, filters: ReportFilters, latestActionId: string | null): boolean {
+function passesRowFilters(status: ComponentStatus, filters: ReportFilters, latestActionId: string | null, overdue: boolean): boolean {
   if (filters.action_id && latestActionId !== filters.action_id) return false;
-  if (filters.progress && status.progress !== filters.progress) return false;
+  if (filters.progress && filters.progress.length > 0 && !filters.progress.includes(status.progress)) return false;
   if (filters.blocked_only && !status.isBlocked) return false;
+  if (filters.overdue_only && !overdue) return false;
 
   const relevantDate = status.lastDateActual ?? status.lastDateExpected;
   if (filters.date_from && (!relevantDate || relevantDate < filters.date_from)) return false;
@@ -130,108 +143,41 @@ function passesEventFilters(status: ComponentStatus, filters: ReportFilters, lat
   return true;
 }
 
-export type DetailedComponentRow = ComponentRow & { status: ComponentStatus; latestActionId: string | null };
-export type DetailedGroup = { pob: Pob; pobStatus: ComponentStatus; components: DetailedComponentRow[] };
-export type DetailedStatusSummary = {
-  pobCount: number;
-  componentCount: number;
-  byProgress: Record<"لم يبدأ" | "جارٍ" | "منتهية", number>;
-  disabledCount: number;
-};
-
-/** تقرير الموقف التفصيلي (شريحة ٦) — يقرأ من computeComponentStatus وحدها (D-49 · D-18 · D-20). */
-export async function getDetailedStatusReport(
-  filters: ReportFilters
-): Promise<{ groups: DetailedGroup[]; summary: DetailedStatusSummary }> {
-  const { pobs, componentsByPob, eventsByPob } = await fetchPobsAndEvents(filters);
-
-  const groups: DetailedGroup[] = [];
-  const summary: DetailedStatusSummary = {
-    pobCount: 0,
-    componentCount: 0,
-    byProgress: { "لم يبدأ": 0, "جارٍ": 0, "منتهية": 0 },
-    disabledCount: 0,
-  };
-
-  for (const pob of pobs) {
-    const pobEvents = eventsByPob.get(pob.id) ?? [];
-    const pobLevelEvents = toStatusInput(pobEvents.filter((e) => !e.component_id));
-    const ownEventsByComponent = new Map<string, EventRow[]>();
-    for (const e of pobEvents) {
-      if (!e.component_id) continue;
-      const list = ownEventsByComponent.get(e.component_id) ?? [];
-      list.push(e);
-      ownEventsByComponent.set(e.component_id, list);
-    }
-
-    const components = componentsByPob.get(pob.id) ?? [];
-    const rows: DetailedComponentRow[] = [];
-
-    for (const c of components) {
-      const ownRows = ownEventsByComponent.get(c.id) ?? [];
-      const status = computeComponentStatus(toStatusInput(ownRows), pobLevelEvents);
-
-      // آخر إجراء الحقيقي (معرّفاً) — لفلتر "الإجراء" (الربط بالمعرّف لا بالاسم، معيار الكود #٤)
-      const merged = [...ownRows, ...pobEvents.filter((e) => !e.component_id)];
-      const latestActionId =
-        merged.length === 0
-          ? null
-          : [...merged].sort((a, b) => {
-              const ak = a.date_actual ?? a.date_expected ?? "";
-              const bk = b.date_actual ?? b.date_expected ?? "";
-              if (ak !== bk) return ak < bk ? 1 : -1;
-              return a.created_at < b.created_at ? 1 : -1;
-            })[0].action_id;
-
-      if (!passesEventFilters(status, filters, latestActionId)) continue;
-
-      rows.push({ ...c, status, latestActionId });
-      summary.componentCount += 1;
-      summary.byProgress[status.progress] += 1;
-      if (!c.is_active) summary.disabledCount += 1;
-    }
-
-    if (rows.length === 0) continue;
-
-    rows.sort((a, b) => a.display_order - b.display_order);
-
-    const pobStatus = computeStatus(toStatusInput(pobEvents));
-    groups.push({ pob, pobStatus, components: rows });
-    summary.pobCount += 1;
-  }
-
-  // الترتيب الافتراضي: المرحلة ← المادة، بترتيب القوائم المرجعية (display_order)
-  // لا أبجدياً — نص عربي مرتَّب أبجدياً يكسر تسلسل KG1 ← ١ ابتدائي ← ٢ ابتدائي...
-  groups.sort((a, b) => {
-    const stageDiff = (a.pob.stage?.display_order ?? 0) - (b.pob.stage?.display_order ?? 0);
-    if (stageDiff !== 0) return stageDiff;
-    return (a.pob.subject?.display_order ?? 0) - (b.pob.subject?.display_order ?? 0);
-  });
-
-  return { groups, summary };
-}
-
-export type RemainingBookRow = {
+export type FlatReportRow = {
   pob: Pob;
-  component: ComponentRow;
+  /** null = الحزمة بلا مكوّنات — صف افتراضي واحد يمثّلها (شريحة ٦ إعادة البناء §١٠أ). */
+  component: ComponentRow | null;
   status: ComponentStatus;
   overdue: boolean;
   daysSince: number | null;
 };
 
-/** تقرير الكتب المتبقية (شريحة ٦) — كل مكوّن حالته ليست "منتهية". */
-export async function getRemainingBooksReport(
-  filters: ReportFilters
-): Promise<{ rows: RemainingBookRow[]; summary: { remaining: number; overdue: number; disabled: number } }> {
+/**
+ * شريحة ٦ (إعادة البناء): محرّك تقرير واحد مسطّح — صف لكل مكوّن (أو صف واحد
+ * للحزمة بلا مكوّنات)، بلا تجميع. يقرأ الموقف من computeComponentStatus/
+ * computeStatus وحدهما (D-49 · D-18 · D-20).
+ */
+export async function getFlatReport(filters: ReportFilters): Promise<{ rows: FlatReportRow[] }> {
   const { pobs, componentsByPob, eventsByPob } = await fetchPobsAndEvents(filters);
   const today = todayIso();
-
-  const rows: RemainingBookRow[] = [];
-  const pobById = new Map(pobs.map((p) => [p.id, p]));
+  const rows: FlatReportRow[] = [];
 
   for (const pob of pobs) {
     const pobEvents = eventsByPob.get(pob.id) ?? [];
-    const pobLevelEvents = toStatusInput(pobEvents.filter((e) => !e.component_id));
+    const pobLevelEventRows = pobEvents.filter((e) => !e.component_id);
+    const pobLevelEvents = toStatusInput(pobLevelEventRows);
+
+    const components = componentsByPob.get(pob.id) ?? [];
+
+    if (components.length === 0) {
+      const status = computeStatus(toStatusInput(pobEvents));
+      const overdue = isOverdue(status, today);
+      const latestActionId = latestActionIdOf(pobEvents);
+      if (!passesRowFilters(status, filters, latestActionId, overdue)) continue;
+      rows.push({ pob, component: null, status, overdue, daysSince: daysSinceLastEvent(status, today) });
+      continue;
+    }
+
     const ownEventsByComponent = new Map<string, EventRow[]>();
     for (const e of pobEvents) {
       if (!e.component_id) continue;
@@ -240,46 +186,31 @@ export async function getRemainingBooksReport(
       ownEventsByComponent.set(e.component_id, list);
     }
 
-    const components = componentsByPob.get(pob.id) ?? [];
-    for (const c of components) {
+    const sortedComponents = [...components].sort((a, b) => a.display_order - b.display_order);
+
+    for (const c of sortedComponents) {
       const ownRows = ownEventsByComponent.get(c.id) ?? [];
       const status = computeComponentStatus(toStatusInput(ownRows), pobLevelEvents);
-      if (status.progress === "منتهية") continue;
+      const overdue = isOverdue(status, today);
+      const latestActionId = latestActionIdOf([...ownRows, ...pobLevelEventRows]);
 
-      const merged = [...ownRows, ...pobEvents.filter((e) => !e.component_id)];
-      const latestActionId =
-        merged.length === 0
-          ? null
-          : [...merged].sort((a, b) => {
-              const ak = a.date_actual ?? a.date_expected ?? "";
-              const bk = b.date_actual ?? b.date_expected ?? "";
-              if (ak !== bk) return ak < bk ? 1 : -1;
-              return a.created_at < b.created_at ? 1 : -1;
-            })[0].action_id;
+      if (!passesRowFilters(status, filters, latestActionId, overdue)) continue;
 
-      if (!passesEventFilters(status, filters, latestActionId)) continue;
-
-      rows.push({
-        pob: pobById.get(pob.id)!,
-        component: c,
-        status,
-        overdue: isOverdue(status, today),
-        daysSince: daysSinceLastEvent(status, today),
-      });
+      rows.push({ pob, component: c, status, overdue, daysSince: daysSinceLastEvent(status, today) });
     }
   }
 
+  // الترتيب: المرحلة ← المادة ← الحزمة نفسها (لتلاصق مكوّناتها) ← ترتيب المكوّن.
+  // بترتيب القوائم المرجعية (display_order) لا أبجدياً — نص عربي أبجدي يكسر
+  // تسلسل KG1 ← ١ ابتدائي ← ٢ ابتدائي...
   rows.sort((a, b) => {
-    const aDate = a.status.lastDateActual ?? a.status.lastDateExpected ?? "";
-    const bDate = b.status.lastDateActual ?? b.status.lastDateExpected ?? "";
-    return aDate < bDate ? -1 : aDate > bDate ? 1 : 0;
+    const stageDiff = (a.pob.stage?.display_order ?? 0) - (b.pob.stage?.display_order ?? 0);
+    if (stageDiff !== 0) return stageDiff;
+    const subjectDiff = (a.pob.subject?.display_order ?? 0) - (b.pob.subject?.display_order ?? 0);
+    if (subjectDiff !== 0) return subjectDiff;
+    if (a.pob.id !== b.pob.id) return a.pob.id < b.pob.id ? -1 : 1;
+    return (a.component?.display_order ?? -1) - (b.component?.display_order ?? -1);
   });
 
-  const summary = {
-    remaining: rows.length,
-    overdue: rows.filter((r) => r.overdue).length,
-    disabled: rows.filter((r) => !r.component.is_active || !r.pob.is_active).length,
-  };
-
-  return { rows, summary };
+  return { rows };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOverdue, daysSinceLastEvent } from "./reports";
+import { isOverdue, daysSinceLastEvent, computeRowVisibility } from "./reports";
 import type { ComponentStatus } from "./events";
 
 function status(overrides: Partial<ComponentStatus> = {}): ComponentStatus {
@@ -46,5 +46,37 @@ describe("daysSinceLastEvent", () => {
 
   it("حالة الفراغ: بلا أي تاريخ → null", () => {
     expect(daysSinceLastEvent(status({}), "2026-09-17")).toBeNull();
+  });
+});
+
+describe("computeRowVisibility", () => {
+  it("الحالة العادية: مرحلة وحزمة متكرّرتان في صفوف متتالية → تُخفَيان من الثاني", () => {
+    const result = computeRowVisibility([
+      { stageLabel: "أولى ابتدائي", pobLabel: "الرياضيات" },
+      { stageLabel: "أولى ابتدائي", pobLabel: "الرياضيات" },
+      { stageLabel: "أولى ابتدائي", pobLabel: "الرياضيات" },
+    ]);
+    expect(result).toEqual([
+      { showStage: true, showPob: true },
+      { showStage: false, showPob: false },
+      { showStage: false, showPob: false },
+    ]);
+  });
+
+  it("حالة الحد: نفس المرحلة وحزمة جديدة → المرحلة تُخفى والحزمة تظهر؛ وتغيّر المرحلة يُظهر الاثنين حتى لو تطابق نص الحزمة", () => {
+    const result = computeRowVisibility([
+      { stageLabel: "أولى ابتدائي", pobLabel: "الرياضيات" },
+      { stageLabel: "أولى ابتدائي", pobLabel: "العلوم" },
+      { stageLabel: "تانية ابتدائي", pobLabel: "العلوم" },
+    ]);
+    expect(result).toEqual([
+      { showStage: true, showPob: true },
+      { showStage: false, showPob: true },
+      { showStage: true, showPob: true },
+    ]);
+  });
+
+  it("حالة الفراغ: بلا صفوف → مصفوفة فاضية", () => {
+    expect(computeRowVisibility([])).toEqual([]);
   });
 });
