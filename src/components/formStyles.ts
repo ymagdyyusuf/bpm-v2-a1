@@ -61,3 +61,13 @@ export const dangerButtonStyle: CSSProperties = {
   fontWeight: 700,
   fontSize: 14,
 };
+
+export const neutralButtonStyle: CSSProperties = {
+  background: "transparent",
+  color: "var(--accent)",
+  border: "1px solid var(--accent)",
+  borderRadius: 10,
+  padding: "10px 22px",
+  fontWeight: 700,
+  fontSize: 14,
+};

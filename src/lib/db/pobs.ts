@@ -109,31 +109,50 @@ export async function updatePob(id: string, input: PobFormInput): Promise<void> 
   }
 }
 
-export type DeletePobResult =
-  | { action: "deleted" }
-  | { action: "deactivated"; componentCount: number };
+export type PobDependents = { componentCount: number; eventCount: number };
+
+/** عدد المكوّنات والأحداث على حزمة — يُستعمل قبل الحذف لعرض النتيجة المتوقَّعة مقدَّماً، وداخل deletePob نفسها. */
+export async function getPobDependents(id: string): Promise<PobDependents> {
+  const supabase = await createClient();
+
+  const [{ count: componentCount, error: componentsError }, { count: eventCount, error: eventsError }] =
+    await Promise.all([
+      supabase.from("components").select("id", { count: "exact", head: true }).eq("pob_id", id),
+      supabase.from("events").select("id", { count: "exact", head: true }).eq("pob_id", id),
+    ]);
+  if (componentsError) throw componentsError;
+  if (eventsError) throw eventsError;
+
+  return { componentCount: componentCount ?? 0, eventCount: eventCount ?? 0 };
+}
+
+export type DeletePobResult = { action: "deleted" } | ({ action: "deactivated" } & PobDependents);
 
 /**
  * D-47: حزمة بلا مكوّنات وبلا أحداث تُحذف نهائياً؛ غير كده تُعطَّل بدل الحذف.
- * الأحداث لسه مش موجودة كجدول (شريحة قادمة) — الفحص هنا على المكوّنات فقط
- * حالياً؛ لما تُبنى الأحداث، هذا الفحص لازم يتوسّع ليشملها (D-48).
+ * D-48 (استُكمل هنا): الفحص يشمل الأحداث مباشرة على الحزمة (component_id
+ * فارغ) لا المكوّنات فقط — حزمة بلا مكوّنات لكن عليها حدث كانت تُحذف
+ * نهائياً بصمت (أو تفشل بخطأ FK خام، لأن events.pob_id بلا cascade)،
+ * مخالفة D-26.
  */
 export async function deletePob(id: string): Promise<DeletePobResult> {
+  const dependents = await getPobDependents(id);
   const supabase = await createClient();
 
-  const { count, error: countError } = await supabase
-    .from("components")
-    .select("id", { count: "exact", head: true })
-    .eq("pob_id", id);
-  if (countError) throw countError;
-
-  if (count && count > 0) {
+  if (dependents.componentCount > 0 || dependents.eventCount > 0) {
     const { error } = await supabase.from("pobs").update({ is_active: false }).eq("id", id);
     if (error) throw new Error(error.message);
-    return { action: "deactivated", componentCount: count };
+    return { action: "deactivated", ...dependents };
   }
 
   const { error } = await supabase.from("pobs").delete().eq("id", id);
   if (error) throw new Error(error.message);
   return { action: "deleted" };
+}
+
+/** عكس deletePob عند التعطيل — is_active علم عادي، لا مانع مبدئي يمنع رجوعه صح (شريحة تنظيم الحذف). */
+export async function reactivatePob(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("pobs").update({ is_active: true }).eq("id", id);
+  if (error) throw error;
 }

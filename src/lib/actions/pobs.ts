@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createPob, updatePob, deletePob, type PobFormInput } from "@/lib/db/pobs";
+import { createPob, updatePob, deletePob, reactivatePob, type PobFormInput } from "@/lib/db/pobs";
+import { toArabicDigits } from "@/lib/numerals";
 
 function readPobForm(formData: FormData): PobFormInput {
   return {
@@ -54,12 +55,27 @@ export async function deletePobAction(formData: FormData) {
   }
 
   if (result.action === "deactivated") {
+    const parts: string[] = [];
+    if (result.componentCount > 0) parts.push(`${toArabicDigits(result.componentCount)} مكوّن`);
+    if (result.eventCount > 0) parts.push(`${toArabicDigits(result.eventCount)} حدث`);
     redirect(
-      `/pobs/${pobId}?notice=${encodeURIComponent(
-        `الحزمة عليها ${result.componentCount} مكوّن، فتم تعطيلها بدل حذفها`
-      )}`
+      `/pobs/${pobId}?notice=${encodeURIComponent(`على الحزمة ${parts.join(" و")}، فتم تعطيلها بدل حذفها`)}`
     );
   }
 
   redirect(`/?notice=${encodeURIComponent("تم حذف الحزمة نهائياً")}`);
+}
+
+export async function reactivatePobAction(formData: FormData) {
+  const pobId = String(formData.get("pob_id") ?? "");
+
+  try {
+    await reactivatePob(pobId);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "تعذّرت إعادة التفعيل";
+    redirect(`/pobs/${pobId}/edit?error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath(`/pobs/${pobId}`);
+  redirect(`/pobs/${pobId}?notice=${encodeURIComponent("تم تفعيل الحزمة")}`);
 }

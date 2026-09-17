@@ -74,9 +74,20 @@ export async function updateComponent(id: string, input: ComponentFormInput): Pr
   if (error) throw error;
 }
 
+/** عدد الأحداث على مكوّن — يُستعمل قبل الحذف لعرض النتيجة المتوقَّعة مقدَّماً، وداخل deleteComponent نفسها. */
+export async function getComponentEventCount(id: string): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("component_id", id);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export type DeleteComponentResult =
   | { action: "deleted" }
-  | { action: "deactivated" };
+  | { action: "deactivated"; eventCount: number };
 
 /**
  * D-47: نفس قاعدة الحزمة — يُحذف نهائياً لو فاضٍ من تبعيات، وغير كده يُعطَّل.
@@ -85,21 +96,23 @@ export type DeleteComponentResult =
  * مفهوم). لما تُبنى الأصول لاحقاً، تُضاف لنفس الفحص.
  */
 export async function deleteComponent(id: string): Promise<DeleteComponentResult> {
+  const eventCount = await getComponentEventCount(id);
   const supabase = await createClient();
 
-  const { count, error: countError } = await supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .eq("component_id", id);
-  if (countError) throw countError;
-
-  if (count && count > 0) {
+  if (eventCount > 0) {
     const { error } = await supabase.from("components").update({ is_active: false }).eq("id", id);
     if (error) throw error;
-    return { action: "deactivated" };
+    return { action: "deactivated", eventCount };
   }
 
   const { error } = await supabase.from("components").delete().eq("id", id);
   if (error) throw error;
   return { action: "deleted" };
+}
+
+/** عكس deleteComponent عند التعطيل — is_active علم عادي، لا مانع مبدئي يمنع رجوعه صح (شريحة تنظيم الحذف). */
+export async function reactivateComponent(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("components").update({ is_active: true }).eq("id", id);
+  if (error) throw error;
 }

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPob } from "@/lib/db/pobs";
+import { getPob, getPobDependents } from "@/lib/db/pobs";
 import {
   listAcademicYears,
   listTerms,
@@ -9,10 +9,18 @@ import {
   listSubjects,
 } from "@/lib/db/reference";
 import { listPublishers } from "@/lib/db/publishers";
-import { updatePobAction, deletePobAction } from "@/lib/actions/pobs";
+import { updatePobAction, deletePobAction, reactivatePobAction } from "@/lib/actions/pobs";
 import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
-import { selectStyle, fieldLabelStyle, errorBannerStyle, primaryButtonStyle, dangerButtonStyle } from "@/components/formStyles";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import {
+  selectStyle,
+  fieldLabelStyle,
+  errorBannerStyle,
+  primaryButtonStyle,
+  dangerButtonStyle,
+  neutralButtonStyle,
+} from "@/components/formStyles";
 
 export default async function EditPobPage({
   params,
@@ -36,6 +44,12 @@ export default async function EditPobPage({
   ]);
 
   if (!pob) notFound();
+
+  const dependents = await getPobDependents(pob.id);
+  const willDeactivate = dependents.componentCount > 0 || dependents.eventCount > 0;
+  const dependentParts: string[] = [];
+  if (dependents.componentCount > 0) dependentParts.push(`${toArabicDigits(dependents.componentCount)} مكوّن`);
+  if (dependents.eventCount > 0) dependentParts.push(`${toArabicDigits(dependents.eventCount)} حدث`);
 
   const academicYears = academicYearsRaw.map((y) => ({ ...y, label: toArabicDigits(y.label) }));
 
@@ -98,26 +112,63 @@ export default async function EditPobPage({
         </div>
       </form>
 
-      <form
-        action={deletePobAction}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-soft)",
-          borderRadius: 14,
-          padding: "18px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <input type="hidden" name="pob_id" value={pob.id} />
-        <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
-          لو الحزمة فاضية من مكوّنات هتتحذف نهائياً، وغير كده هتتعطّل تلقائياً بدل الحذف.
-        </p>
-        <button type="submit" className="heading-font" style={dangerButtonStyle}>
-          حذف الحزمة
-        </button>
-      </form>
+      {pob.is_active ? (
+        <form
+          action={deletePobAction}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 14,
+            padding: "18px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <input type="hidden" name="pob_id" value={pob.id} />
+          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+            {willDeactivate ? (
+              <>على الحزمة {dependentParts.join(" و")} — الحذف هيعطّلها بدل ما يمسحها، وترجع بـ&quot;إعادة تفعيل&quot; وقت ما تحب.</>
+            ) : (
+              <>الحزمة فاضية تماماً — الحذف نهائي ولا رجعة فيه.</>
+            )}
+          </p>
+          <ConfirmSubmitButton
+            confirmText={
+              willDeactivate
+                ? `على الحزمة ${dependentParts.join(" و")}. هتتعطّل بدل ما تتمسح، وممكن ترجّعها بعدين. متأكد؟`
+                : "الحزمة فاضية تماماً وهتتمسح نهائياً — الخطوة دي لا رجعة فيها. متأكد؟"
+            }
+            style={dangerButtonStyle}
+          >
+            حذف الحزمة
+          </ConfirmSubmitButton>
+        </form>
+      ) : (
+        <form
+          action={reactivatePobAction}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 14,
+            padding: "18px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <input type="hidden" name="pob_id" value={pob.id} />
+          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+            الحزمة معطَّلة حالياً{dependentParts.length > 0 ? ` (عليها ${dependentParts.join(" و")})` : ""} — الحذف النهائي
+            غير متاح طالما عليها تبعيات؛ إعادة التفعيل ترجّعها للقائمة الفعّالة كما هي.
+          </p>
+          <button type="submit" className="heading-font" style={neutralButtonStyle}>
+            إعادة تفعيل الحزمة
+          </button>
+        </form>
+      )}
     </div>
   );
 }

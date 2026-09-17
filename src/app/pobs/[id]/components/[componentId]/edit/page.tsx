@@ -1,10 +1,19 @@
 import { notFound } from "next/navigation";
 import { getPob } from "@/lib/db/pobs";
-import { listComponentsForPob } from "@/lib/db/components";
+import { listComponentsForPob, getComponentEventCount } from "@/lib/db/components";
 import { listComponentCategories, listComponentKinds } from "@/lib/db/reference";
-import { updateComponentAction, deleteComponentAction } from "@/lib/actions/components";
+import { updateComponentAction, deleteComponentAction, reactivateComponentAction } from "@/lib/actions/components";
+import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
-import { selectStyle, fieldLabelStyle, errorBannerStyle, primaryButtonStyle, dangerButtonStyle } from "@/components/formStyles";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import {
+  selectStyle,
+  fieldLabelStyle,
+  errorBannerStyle,
+  primaryButtonStyle,
+  dangerButtonStyle,
+  neutralButtonStyle,
+} from "@/components/formStyles";
 
 export default async function EditComponentPage({
   params,
@@ -26,6 +35,9 @@ export default async function EditComponentPage({
   if (!pob) notFound();
   const component = components.find((c) => c.id === componentId);
   if (!component) notFound();
+
+  const eventCount = await getComponentEventCount(component.id);
+  const willDeactivate = eventCount > 0;
 
   return (
     <div style={{ padding: "36px 48px 56px", display: "flex", flexDirection: "column", gap: 24 }}>
@@ -127,27 +139,68 @@ export default async function EditComponentPage({
         مكوّن فئته &quot;هدية&quot; يُحفظ باسمه فقط — أي مقاس أو صفحات أو ألوان تُهمَل تلقائياً.
       </p>
 
-      <form
-        action={deleteComponentAction}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border-soft)",
-          borderRadius: 14,
-          padding: "18px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <input type="hidden" name="pob_id" value={pob.id} />
-        <input type="hidden" name="component_id" value={component.id} />
-        <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
-          لو المكوّن بلا أحداث هيتحذف نهائياً، وغير كده هيتعطّل تلقائياً بدل الحذف.
-        </p>
-        <button type="submit" className="heading-font" style={dangerButtonStyle}>
-          حذف المكوّن
-        </button>
-      </form>
+      {component.is_active ? (
+        <form
+          action={deleteComponentAction}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 14,
+            padding: "18px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <input type="hidden" name="pob_id" value={pob.id} />
+          <input type="hidden" name="component_id" value={component.id} />
+          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+            {willDeactivate ? (
+              <>
+                على المكوّن {toArabicDigits(eventCount)} حدث — الحذف هيعطّله بدل ما يمسحه، ويرجع بـ&quot;إعادة
+                تفعيل&quot; وقت ما تحب.
+              </>
+            ) : (
+              <>المكوّن بلا أحداث — الحذف نهائي ولا رجعة فيه.</>
+            )}
+          </p>
+          <ConfirmSubmitButton
+            confirmText={
+              willDeactivate
+                ? `على المكوّن ${toArabicDigits(eventCount)} حدث. هيتعطّل بدل ما يتمسح، وممكن ترجّعه بعدين. متأكد؟`
+                : "المكوّن بلا أحداث وهيتمسح نهائياً — الخطوة دي لا رجعة فيها. متأكد؟"
+            }
+            style={dangerButtonStyle}
+          >
+            حذف المكوّن
+          </ConfirmSubmitButton>
+        </form>
+      ) : (
+        <form
+          action={reactivateComponentAction}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 14,
+            padding: "18px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <input type="hidden" name="pob_id" value={pob.id} />
+          <input type="hidden" name="component_id" value={component.id} />
+          <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>
+            المكوّن معطَّل حالياً{eventCount > 0 ? ` (عليه ${toArabicDigits(eventCount)} حدث)` : ""} — الحذف النهائي غير
+            متاح طالما عليه أحداث؛ إعادة التفعيل ترجّعه للقائمة الفعّالة كما هو.
+          </p>
+          <button type="submit" className="heading-font" style={neutralButtonStyle}>
+            إعادة تفعيل المكوّن
+          </button>
+        </form>
+      )}
     </div>
   );
 }
