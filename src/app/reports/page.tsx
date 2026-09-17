@@ -16,7 +16,7 @@ import { toArabicDigits } from "@/lib/numerals";
 import { AppHeader } from "@/components/AppHeader";
 import { ReportHeader } from "@/components/ReportHeader";
 import { ReportFilterBar, type ReportFilterValues } from "@/components/ReportFilterBar";
-import { REPORT_COLUMNS, DEFAULT_COLUMNS, componentCellText } from "@/components/ReportColumns";
+import { REPORT_COLUMNS, parseColumns, componentCellText } from "@/components/ReportColumns";
 
 const DEFAULT_TITLE = "استخراج التقارير";
 
@@ -99,9 +99,7 @@ export default async function ReportsPage({
     shortcut: params.shortcut,
   };
 
-  const selectedColumnKeys = new Set(
-    params.cols ? params.cols.split(",").filter(Boolean) : DEFAULT_COLUMNS
-  );
+  const selectedColumnKeys = parseColumns(params.cols);
   const activeColumns = REPORT_COLUMNS.filter((c) => selectedColumnKeys.has(c.key));
 
   const { rows } = await getFlatReport(filters);

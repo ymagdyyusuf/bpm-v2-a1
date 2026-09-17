@@ -103,6 +103,21 @@ export const DEFAULT_COLUMNS: ReportColumnKey[] = [
 
 export const PRINT_ORDERS_COLUMNS: ReportColumnKey[] = ["size", "pages", "colors", "price"];
 
+/**
+ * كلمة محجوزة لـ"صفر أعمدة اختيارية مختارة عمداً" — بلا هذه القيمة، فراغ
+ * cols في الرابط لا يُفرَّق عن غيابه أصلاً، فإلغاء آخر عمود كان يسقط
+ * الباراميتر من الرابط ويرجع القراءة للست الافتراضية بدل الصفر (اكتشفه
+ * يوسف أثناء إثبات شريحة ٦: آخر خانة تتعلّم لوحدها تاني). لا يصطدم بأي
+ * مفتاح عمود حقيقي — استعمالها موحَّد بين الفلتر والصفحة.
+ */
+export const NO_COLUMNS = "none";
+
+export function parseColumns(cols: string | undefined): Set<ReportColumnKey> {
+  if (cols === undefined) return new Set(DEFAULT_COLUMNS);
+  if (cols === NO_COLUMNS) return new Set();
+  return new Set(cols.split(",").filter(Boolean) as ReportColumnKey[]);
+}
+
 export function componentCellText(row: FlatReportRow): string {
   if (!row.component) return "— بلا مكوّنات —";
   const parts = [row.component.category?.label, row.component.kind?.label, row.component.name].filter(Boolean);

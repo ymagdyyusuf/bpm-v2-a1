@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { Option } from "@/lib/db/reference";
-import { REPORT_COLUMNS, DEFAULT_COLUMNS, PRINT_ORDERS_COLUMNS, type ReportColumnKey } from "@/components/ReportColumns";
+import {
+  REPORT_COLUMNS,
+  PRINT_ORDERS_COLUMNS,
+  NO_COLUMNS,
+  parseColumns,
+  type ReportColumnKey,
+} from "@/components/ReportColumns";
 
 export type ReportFilterValues = Partial<{
   academic_year_id: string;
@@ -68,6 +74,7 @@ export function ReportFilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const [titleDraft, setTitleDraft] = useState(current.title ?? "");
+  const [isPending, startTransition] = useTransition();
 
   function apply(patch: Partial<Record<keyof ReportFilterValues, string>>) {
     const params = new URLSearchParams();
@@ -75,7 +82,10 @@ export function ReportFilterBar({
       const value = key in patch ? patch[key] : current[key];
       if (value) params.set(key, value);
     }
-    router.push(`${pathname}?${params.toString()}`);
+    const url = `${pathname}?${params.toString()}`;
+    startTransition(() => {
+      router.push(url, { scroll: false });
+    });
   }
 
   function toggleBoolean(key: "blocked_only" | "overdue_only" | "include_inactive") {
@@ -90,14 +100,12 @@ export function ReportFilterBar({
     apply({ progress: [...next].join(",") });
   }
 
-  const selectedCols = new Set(
-    current.cols ? current.cols.split(",").filter(Boolean) : DEFAULT_COLUMNS
-  );
+  const selectedCols = parseColumns(current.cols);
   function toggleColumn(key: ReportColumnKey) {
     const next = new Set(selectedCols);
     if (next.has(key)) next.delete(key);
     else next.add(key);
-    apply({ cols: [...next].join(",") });
+    apply({ cols: next.size > 0 ? [...next].join(",") : NO_COLUMNS });
   }
 
   const fieldStyle = {
@@ -222,12 +230,15 @@ export function ReportFilterBar({
           onClick={(e) => {
             e.preventDefault();
             setTitleDraft("");
-            router.push(pathname);
+            startTransition(() => {
+              router.push(pathname, { scroll: false });
+            });
           }}
           style={{ fontSize: 12.5, fontWeight: 600 }}
         >
           مسح الفلاتر
         </a>
+        {isPending ? <span style={{ fontSize: 12, color: "var(--text-muted)" }}>جارٍ التحديث…</span> : null}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
